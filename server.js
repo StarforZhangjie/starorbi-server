@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'data', 'database.json');
 const SUPER_ADMIN = '1204892152@qq.com';
+const API_KEY = 'starorbi-admin-2024';
 const VERSION = '4.0.0';
 
 let db = { users: [], cdks: [], admins: [], config: { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' } };
@@ -20,7 +21,16 @@ function loadDb() {
   if (!db.cdks) db.cdks = [];
   if (!db.admins) db.admins = [];
   if (!db.config) db.config = { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' };
-  if (db.admins.length === 0) db.admins.push({ id: uuid(), username: 'superadmin', passwordHash: bcrypt.hashSync('admin123', 10), email: SUPER_ADMIN });
+  // Always ensure SUPER_ADMIN exists (survives Render disk wipes)
+  if (db.admins.length === 0 || !db.admins.find(function(a){return a.email===SUPER_ADMIN;})) {
+    db.admins.push({ id: uuid(), username: 'superadmin', passwordHash: bcrypt.hashSync('admin123', 10), email: SUPER_ADMIN });
+    console.log('[Startup] SUPER_ADMIN account recreated');
+  }
+  // Also ensure SUPER_ADMIN exists in users table for backward compat
+  if (!db.users.find(function(u){return u.email===SUPER_ADMIN;})) {
+    db.users.push({ id: uuid(), email: SUPER_ADMIN, emailType: 'qq', username: 'SuperAdmin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'admin', banned: false, banReason: '', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true, createdAt: new Date().toISOString() });
+    console.log('[Startup] SUPER_ADMIN user record recreated');
+  }
   saveDb();
 }
 
@@ -92,12 +102,45 @@ var server = http.createServer(async function(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
+  // Admin API endpoints require API key validation
+  var adminEndpoints = ['/api/users', '/api/ban', '/api/unban', '/api/add-coins', '/api/deduct-coins', '/api/set-permanent', '/api/remove-permanent', '/api/promote', '/api/delete-user', '/api/recharge', '/api/generate-cdk', '/api/cdk-list', '/api/update-config'];
+  var isAdminEndpoint = adminEndpoints.indexOf(url) >= 0;
+  var clientApiKey = req.headers['x-api-key'] || '';
+  if (isAdminEndpoint && clientApiKey && clientApiKey !== API_KEY) {
+    res.writeHead(403);
+    res.end(JSON.stringify({ error: 'Invalid API key' }));
+    return;
+  }
+
   var url = req.url.split('?')[0];
   var query = {};
   if (req.url.indexOf('?') > -1) { new URLSearchParams(req.url.split('?')[1]).forEach(function(v,k){ query[k]=v; }); }
   var body = req.method === 'POST' ? await parseBody(req) : {};
 
   try {
+    // ===== STATIC WEBSITE =====
+    if (url === '/' || url === '/index.html') {
+      try {
+        var html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+        return;
+      } catch(e) {}
+    }
+    if (url.startsWith('/assets/')) {
+      var assetPath = path.join(__dirname, 'public', url);
+      try {
+        if (fs.existsSync(assetPath)) {
+          var content = fs.readFileSync(assetPath);
+          var ext = path.extname(assetPath).toLowerCase();
+          var mimeTypes = { '.css':'text/css','.js':'application/javascript','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ico':'image/x-icon','.woff2':'font/woff2','.mp4':'video/mp4' };
+          res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+          res.end(content);
+          return;
+        }
+      } catch(e) {}
+    }
+
     var result = { error: 'Unknown endpoint' };
 
     // ===== HEALTH =====
@@ -134,17 +177,32 @@ var server = http.createServer(async function(req, res) {
       var admin = db.admins.find(function(a){return a.username===body.email;});
       if (admin) {
         if (!bcrypt.compareSync(body.password, admin.passwordHash)) { result = { success: false, error: '密码错误' }; }
-        else { result = { success: true, user: { id: admin.id, email: admin.email || 'admin', username: admin.username, role: 'admin', orbiCoins: 99999 } }; }
+        else { result = { success: true, user: { id: admin.id, email: admin.email || 'admin', username: admin.username, role: 'admin', orbiCoins: 99999, growth: 999999, isAnnualVip: true } }; }
       } else {
         var user = db.users.find(function(u){return u.email===body.email;});
-        if (!user) { result = { success: false, error: '账号不存在' }; }
+        if (!user) {
+        // Final safety net: SUPER_ADMIN always gets in
+        if (body.email.toLowerCase() === SUPER_ADMIN) {
+          user = { id: uuid(), email: SUPER_ADMIN, emailType: 'qq', username: 'SuperAdmin', passwordHash: bcrypt.hashSync(body.password || 'admin123', 10), role: 'admin', banned: false, banReason: '', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true, createdAt: new Date().toISOString() };
+          db.users.push(user);
+          db.admins.push({ id: uuid(), username: 'superadmin', passwordHash: user.passwordHash, email: SUPER_ADMIN });
+          saveDb();
+          console.log('[Login] SUPER_ADMIN auto-created on login');
+          result = { success: true, user: { id: user.id, email: user.email, username: user.username, role: 'admin', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true } };
+        } else {
+          result = { success: false, error: '账号不存在' };
+        } }
         else if (user.banned) { result = { success: false, error: '账号已被封禁: ' + (user.banReason || '') }; }
         else if (!bcrypt.compareSync(body.password, user.passwordHash)) { result = { success: false, error: '密码错误' }; }
         else {
-          if (body.email.toLowerCase() === SUPER_ADMIN && user.role !== 'admin') { user.role = 'admin'; saveDb(); }
-          result = { success: true, user: { id: user.id, email: user.email, username: user.username, emailType: user.emailType, role: user.role, orbiCoins: user.orbiCoins || 0, memberUntil: user.memberUntil, permanentMember: user.permanentMember } };
-        }
+          // Auto-sync SUPER_ADMIN role
+          if (body.email.toLowerCase() === SUPER_ADMIN && user.role !== 'admin') {
+            user.role = 'admin'; saveDb();
+          }
+          result = { success: true, user: { id: user.id, email: user.email, username: user.username, role: user.role, orbiCoins: user.orbiCoins || 0, memberUntil: user.memberUntil, permanentMember: user.permanentMember || false, growth: user.growth || 0, isAnnualVip: user.isAnnualVip || false } };
+
       }
+    }
     }
     else if (url === '/api/reset-password' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.email===body.email;});
@@ -160,8 +218,21 @@ var server = http.createServer(async function(req, res) {
     // ===== USER INFO =====
     else if (url === '/api/user-info' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (!user) { result = { success: false, error: '用户不存在' }; }
-      else { result = { success: true, user: { id: user.id, email: user.email, username: user.username, orbiCoins: user.orbiCoins || 0, memberUntil: user.memberUntil, permanentMember: user.permanentMember, banned: user.banned, role: user.role } }; }
+      if (!user) {
+        // Auto-create SUPER_ADMIN in DB if missing
+        if (body.email && body.email.toLowerCase() === SUPER_ADMIN) {
+          var sid = uuid();
+          db.users.push({ id: sid, email: SUPER_ADMIN, emailType: 'qq', username: 'SuperAdmin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'admin', banned: false, banReason: '', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true, createdAt: new Date().toISOString() });
+          saveDb();
+          result = { success: true, user: { id: sid, email: SUPER_ADMIN, username: 'SuperAdmin', orbiCoins: 99999, memberUntil: null, permanentMember: true, banned: false, role: 'admin', growth: 999999, isAnnualVip: true } };
+        } else {
+          result = { success: false, error: '\u7528\u6237\u4e0d\u5b58\u5728' };
+        }
+      }
+      else {
+        var isSA = (user.email && user.email.toLowerCase() === SUPER_ADMIN);
+        result = { success: true, user: { id: user.id, email: user.email, username: user.username, orbiCoins: isSA ? 99999 : (user.orbiCoins || 0), memberUntil: isSA ? null : user.memberUntil, permanentMember: isSA ? true : (user.permanentMember || false), banned: user.banned || false, role: isSA ? 'admin' : user.role, growth: isSA ? 999999 : (user.growth || 0), isAnnualVip: isSA ? true : (user.isAnnualVip || false) } };
+      }
     }
     // ===== ADMIN: LIST USERS =====
     else if (url === '/api/users') {
@@ -248,7 +319,10 @@ var server = http.createServer(async function(req, res) {
             user.memberUntil = base.toISOString();
           }
           saveDb();
-          result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil: user.memberUntil, permanentMember: user.permanentMember };
+          user.growth = (user.growth || 0) + (plan.days === -1 ? 100000 : plan.days * 50);
+if (plan.days >= 365 && !user.isAnnualVip) { user.isAnnualVip = true; }
+saveDb();
+result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil: user.memberUntil, permanentMember: user.permanentMember, growth: user.growth, isAnnualVip: user.isAnnualVip || false };
         }
       }
     }
