@@ -13,6 +13,24 @@ const VERSION = '4.0.0';
 
 let db = { users: [], cdks: [], admins: [], config: { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' } };
 let verificationCodes = new Map();
+// SSE real-time push
+let sseClients = new Map(); // userId -> [res, res, ...]
+function sseSend(userId, event, data) {
+  var clients = sseClients.get(userId);
+  if (!clients) return;
+  var payload = 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n';
+  clients.forEach(function(res) {
+    try { res.write(payload); } catch(e) {}
+  });
+}
+function sseBroadcast(event, data) {
+  var payload = 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n';
+  sseClients.forEach(function(clients) {
+    clients.forEach(function(res) {
+      try { res.write(payload); } catch(e) {}
+    });
+  });
+}
 
 // Load database
 function loadDb() {
@@ -103,7 +121,29 @@ var server = http.createServer(async function(req, res) {
     var result = { error: 'Unknown endpoint' };
 
     // ===== HEALTH =====
-    if (url === '/api/health') {
+    // ===== SSE REAL-TIME STREAM =====
+    if (url === '/api/sync/stream') {
+      var uid = query.userId;
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.write('event: connected\ndata: {"status":"ok"}\n\n');
+      if (!sseClients.has(uid)) sseClients.set(uid, []);
+      sseClients.get(uid).push(res);
+      req.on('close', function() {
+        var arr = sseClients.get(uid);
+        if (arr) {
+          var idx = arr.indexOf(res);
+          if (idx >= 0) arr.splice(idx, 1);
+          if (arr.length === 0) sseClients.delete(uid);
+        }
+      });
+      return; // Don't continue to normal response
+    }
+    else if (url === '/api/health') {
       result = { status: 'ok', version: VERSION, users: db.users.length, cdks: db.cdks.length, time: new Date().toISOString() };
     }
     // ===== AUTH =====
@@ -210,35 +250,35 @@ var server = http.createServer(async function(req, res) {
     }
     else if (url === '/api/unban' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.banned = false; user.banReason = ''; saveDb(); result = { success: true }; }
+      if (user) { user.banned = false; user.banReason = ''; saveDb(); sseSend(body.userId, 'refresh', {banned:false}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     // ===== ADMIN: COINS =====
     else if (url === '/api/add-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
-      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); saveDb(); result = { success: true, balance: user.orbiCoins, username: user.username }; }
+      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, balance: user.orbiCoins, username: user.username }; }
     }
     else if (url === '/api/deduct-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else if ((user.orbiCoins || 0) < (body.amount || 0)) { result = { success: false, error: '����' }; }
-      else { user.orbiCoins -= body.amount; saveDb(); result = { success: true, balance: user.orbiCoins }; }
+      else { user.orbiCoins -= body.amount; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, balance: user.orbiCoins }; }
     }
     // ===== ADMIN: MEMBERSHIP =====
     else if (url === '/api/set-permanent' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.permanentMember = true; saveDb(); result = { success: true }; }
+      if (user) { user.permanentMember = true; saveDb(); sseSend(body.userId, 'refresh', {permanentMember:true}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/remove-permanent' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.permanentMember = false; saveDb(); result = { success: true }; }
+      if (user) { user.permanentMember = false; saveDb(); sseSend(body.userId, 'refresh', {permanentMember:false}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/promote' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.role = 'admin'; saveDb(); result = { success: true }; }
+      if (user) { user.role = 'admin'; saveDb(); sseSend(body.userId, 'refresh', {role:'admin'}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/delete-user' && req.method === 'POST') {
@@ -253,7 +293,7 @@ var server = http.createServer(async function(req, res) {
         var plans = { '1yuan': 10, '10yuan': 100, '50yuan': 1000 };
         var coins = plans[body.plan] || parseInt(body.customAmount) || 0;
         if (coins <= 0) { result = { success: false, error: '��Ч��ֵ���' }; }
-        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); result = { success: true, added: coins, balance: user.orbiCoins }; }
+        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); sseSend(body.userId, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, added: coins, balance: user.orbiCoins }; }
       }
     }
     // ===== BUY MEMBERSHIP =====
@@ -280,7 +320,7 @@ var server = http.createServer(async function(req, res) {
             base.setDate(base.getDate() + plan.days);
             user.memberUntil = base.toISOString();
           }
-          saveDb();
+          saveDb(); sseSend(body.userId, 'refresh', {orbiCoins:user.orbiCoins, memberUntil:user.memberUntil, permanentMember:user.permanentMember});
           result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil: user.memberUntil, permanentMember: user.permanentMember };
         }
       }
