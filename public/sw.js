@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'starorbi-v3.8.0';
+const CACHE_NAME = 'starorbi-v3.8.0';
 const urlsToCache = ['/mobile.html', '/manifest.json'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache)));
