@@ -32,8 +32,8 @@ function saveDb() {
 // Email helpers
 function getEmailType(email) {
   if (email.endsWith('@qq.com')) return 'QQ����';
-  if (email.endsWith('@163.com') || email.endsWith('@126.com') || email.endsWith('@yeah.net')) return '��������';
-  if (email.endsWith('@gmail.com')) return '�ȸ�����';
+  if (email.endsWith('@163.com') || email.endsWith('@126.com') || email.endsWith('@yeah.net')) return '密码错误';
+  if (email.endsWith('@gmail.com')) return '谷歌邮箱';
   return null;
 }
 
@@ -43,11 +43,11 @@ async function sendVerificationCode(email) {
   var config = db.config;
   if (!config.smtpUser || !config.smtpPass) {
     console.log('[DEV] Code for ' + email + ': ' + code);
-    return { success: true, message: '��֤��: ' + code + ' (DEVģʽ)', devCode: code };
+    return { success: true, message: '验证码: ' + code + ' (DEVģʽ)', devCode: code };
   }
   try {
     var transporter = nodemailer.createTransport({ host: config.smtpHost, port: config.smtpPort, secure: true, auth: { user: config.smtpUser, pass: config.smtpPass } });
-    await transporter.sendMail({ from: config.smtpFrom || config.smtpUser, to: email, subject: 'StarOrbi - ��֤��', text: '��֤��: ' + code + ' 5������Ч', html: '<div style="padding:20px"><h2 style="color:#667eea">StarOrbi �ǹ�����</h2><p>��֤��:</p><div style="font-size:32px;font-weight:bold;color:#667eea;letter-spacing:8px;padding:16px;background:#f5f5ff;border-radius:12px;text-align:center">' + code + '</div><p style="color:#999">5��������Ч</p></div>' });
+    await transporter.sendMail({ from: config.smtpFrom || config.smtpUser, to: email, subject: 'StarOrbi - ��֤��', text: '验证码: ' + code + ' 5������Ч', html: '<div style="padding:20px"><h2 style="color:#667eea">StarOrbi �ǹ�����</h2><p>��֤��:</p><div style="font-size:32px;font-weight:bold;color:#667eea;letter-spacing:8px;padding:16px;background:#f5f5ff;border-radius:12px;text-align:center">' + code + '</div><p style="color:#999">5��������Ч</p></div>' });
     return { success: true, message: '��֤���ѷ����� ' + email };
   } catch(e) { return { success: false, error: '����ʧ��: ' + e.message }; }
 }
@@ -55,8 +55,8 @@ async function sendVerificationCode(email) {
 function verifyCode(email, code) {
   var record = verificationCodes.get(email);
   if (!record) return { success: false, error: '���Ȼ�ȡ��֤��' };
-  if (Date.now() > record.expires) { verificationCodes.delete(email); return { success: false, error: '��֤���ѹ���' }; }
-  if (record.code !== code) return { success: false, error: '��֤�����' };
+  if (Date.now() > record.expires) { verificationCodes.delete(email); return { success: false, error: '验证码已过期' }; }
+  if (record.code !== code) return { success: false, error: '验证码错误' };
   verificationCodes.delete(email);
   return { success: true };
 }
@@ -108,17 +108,17 @@ var server = http.createServer(async function(req, res) {
     }
     // ===== AUTH =====
     else if (url === '/api/send-code' && req.method === 'POST') {
-      if (!body.email) { result = { success: false, error: '����������' }; }
-      else if (!getEmailType(body.email)) { result = { success: false, error: '��֧��QQ/����/�ȸ�����' }; }
-      else if (db.users.find(function(u){return u.email===body.email;})) { result = { success: false, error: '��������ע��' }; }
+      if (!body.email) { result = { success: false, error: '网易邮箱' }; }
+      else if (!getEmailType(body.email)) { result = { success: false, error: '仅支持QQ/网易/谷歌邮箱' }; }
+      else if (db.users.find(function(u){return u.email===body.email;})) { result = { success: false, error: '该邮箱已注册' }; }
       else { result = await sendVerificationCode(body.email); }
     }
     else if (url === '/api/register' && req.method === 'POST') {
       var emailType = getEmailType(body.email);
-      if (!emailType) { result = { success: false, error: '��֧��QQ/����/�ȸ�����' }; }
-      else if (db.users.find(function(u){return u.email===body.email;})) { result = { success: false, error: '��������ע��' }; }
+      if (!emailType) { result = { success: false, error: '仅支持QQ/网易/谷歌邮箱' }; }
+      else if (db.users.find(function(u){return u.email===body.email;})) { result = { success: false, error: '该邮箱已注册' }; }
       else if (!body.username || body.username.length < 2) { result = { success: false, error: '�û�������2�ַ�' }; }
-      else if (!body.password || body.password.length < 6) { result = { success: false, error: '��������6λ' }; }
+      else if (!body.password || body.password.length < 6) { result = { success: false, error: '密码至少6位' }; }
       else if (!body.code) { result = { success: false, error: '��������֤��' }; }
       else {
         var vr = verifyCode(body.email, body.code);
@@ -170,7 +170,7 @@ var server = http.createServer(async function(req, res) {
         else { result = { success: true, user: { id: admin.id, email: admin.email || 'admin', username: admin.username, role: 'admin', orbiCoins: 99999 } }; }
       } else {
         var user = db.users.find(function(u){return u.email===body.email;});
-        if (!user) { result = { success: false, error: '�˺Ų�����' }; }
+        if (!user) { result = { success: false, error: '账号不存在' }; }
         else if (user.banned) { result = { success: false, error: '�˺��ѱ����: ' + (user.banReason || '') }; }
         else if (!bcrypt.compareSync(body.password, user.passwordHash)) { result = { success: false, error: '�������' }; }
         else {
@@ -181,19 +181,19 @@ var server = http.createServer(async function(req, res) {
     }
     else if (url === '/api/reset-password' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.email===body.email;});
-      if (!user) { result = { success: false, error: '������δע��' }; }
+      if (!user) { result = { success: false, error: '该邮箱未注册' }; }
       else if (!body.code) { result = { success: false, error: '��������֤��' }; }
       else if (!body.newPassword || body.newPassword.length < 6) { result = { success: false, error: '����������6λ' }; }
       else {
         var vr = verifyCode(body.email, body.code);
         if (!vr.success) { result = vr; }
-        else { user.passwordHash = bcrypt.hashSync(body.newPassword, 10); saveDb(); result = { success: true, message: '�����޸ĳɹ�' }; }
+        else { user.passwordHash = bcrypt.hashSync(body.newPassword, 10); saveDb(); result = { success: true, message: '密码修改成功' }; }
       }
     }
     // ===== USER INFO =====
     else if (url === '/api/user-info' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (!user) { result = { success: false, error: '�û�������' }; }
+      if (!user) { result = { success: false, error: '用户不存在' }; }
       else { var isSA=user.email&&user.email.toLowerCase()===SUPER_ADMIN; result = { success: true, user: { id: user.id, email: user.email, username: user.username, orbiCoins: isSA?99999:(user.orbiCoins||0), memberUntil: isSA?null:user.memberUntil, permanentMember: isSA?true:(user.permanentMember||false), banned: user.banned||false, role: isSA?'admin':user.role, growth: isSA?999999:(user.growth||0), isAnnualVip: isSA?true:(user.isAnnualVip||false) } }; }
     }
     // ===== ADMIN: LIST USERS =====
@@ -204,42 +204,42 @@ var server = http.createServer(async function(req, res) {
     }
     // ===== ADMIN: BAN/UNBAN =====
     else if (url === '/api/ban' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (user) { user.banned = true; user.banReason = body.reason || 'Υ��ʹ������'; saveDb(); result = { success: true }; }
-      else { result = { success: false, error: '�û�������' }; }
+      else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/unban' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (user) { user.banned = false; user.banReason = ''; saveDb(); result = { success: true }; }
-      else { result = { success: false, error: '�û�������' }; }
+      else { result = { success: false, error: '用户不存在' }; }
     }
     // ===== ADMIN: COINS =====
     else if (url === '/api/add-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
-      if (!user) { result = { success: false, error: '�û�������' }; }
+      if (!user) { result = { success: false, error: '用户不存在' }; }
       else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); saveDb(); result = { success: true, balance: user.orbiCoins, username: user.username }; }
     }
     else if (url === '/api/deduct-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
-      if (!user) { result = { success: false, error: '�û�������' }; }
+      if (!user) { result = { success: false, error: '用户不存在' }; }
       else if ((user.orbiCoins || 0) < (body.amount || 0)) { result = { success: false, error: '����' }; }
       else { user.orbiCoins -= body.amount; saveDb(); result = { success: true, balance: user.orbiCoins }; }
     }
     // ===== ADMIN: MEMBERSHIP =====
     else if (url === '/api/set-permanent' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (user) { user.permanentMember = true; saveDb(); result = { success: true }; }
-      else { result = { success: false, error: '�û�������' }; }
+      else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/remove-permanent' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (user) { user.permanentMember = false; saveDb(); result = { success: true }; }
-      else { result = { success: false, error: '�û�������' }; }
+      else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/promote' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (user) { user.role = 'admin'; saveDb(); result = { success: true }; }
-      else { result = { success: false, error: '�û�������' }; }
+      else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/delete-user' && req.method === 'POST') {
       db.users = db.users.filter(function(u){return u.id!==body.userId;});
@@ -247,8 +247,8 @@ var server = http.createServer(async function(req, res) {
     }
     // ===== RECHARGE =====
     else if (url === '/api/recharge' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (!user) { result = { success: false, error: '�û�������' }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (!user) { result = { success: false, error: '用户不存在' }; }
       else {
         var plans = { '1yuan': 10, '10yuan': 100, '50yuan': 1000 };
         var coins = plans[body.plan] || parseInt(body.customAmount) || 0;
@@ -258,19 +258,19 @@ var server = http.createServer(async function(req, res) {
     }
     // ===== BUY MEMBERSHIP =====
     else if (url === '/api/buy-membership' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (!user) { result = { success: false, error: '�û�������' }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (!user) { result = { success: false, error: '用户不存在' }; }
       else {
         var plans = [
           { days: 1, cost: 10, label: '1���Ա' },
           { days: 7, cost: 50, label: '7���Ա' },
-          { days: 30, cost: 500, label: '�»�Ա' },
+          { days: 30, cost: 500, label: '月会员' },
           { days: 365, cost: 5000, label: '���Ա' },
-          { days: -1, cost: 19821220, label: '���û�Ա' }
+          { days: -1, cost: 19821220, label: '永久会员' }
         ];
         var plan = plans[body.planIndex];
-        if (!plan) { result = { success: false, error: '��Ч�ײ�' }; }
-        else if ((user.orbiCoins || 0) < plan.cost) { result = { success: false, error: 'Orbi�Ҳ���' }; }
+        if (!plan) { result = { success: false, error: '无效套餐' }; }
+        else if ((user.orbiCoins || 0) < plan.cost) { result = { success: false, error: 'Orbi币不足' }; }
         else {
           user.orbiCoins -= plan.cost;
           if (plan.days === -1) { user.permanentMember = true; }
@@ -291,7 +291,7 @@ var server = http.createServer(async function(req, res) {
       var count = body.count || 1;
       var type = body.type || 'coins'; // 'coins' or 'membership'
       var value = body.value || 10;
-      var label = body.label || value + ' Orbi��';
+      var label = body.label || value + ' Orbi币';
       var days = body.days || 0;
       for (var i = 0; i < count; i++) {
         var cdk = { code: generateCdkCode(), type: type, value: value, label: label, days: days, used: false, usedBy: null, usedAt: null, createdAt: new Date().toISOString() };
@@ -303,16 +303,16 @@ var server = http.createServer(async function(req, res) {
     }
     else if (url === '/api/redeem-cdk' && req.method === 'POST') {
       var cdk = db.cdks.find(function(c){return c.code===body.code;});
-      if (!cdk) { result = { success: false, error: 'CDK������' }; }
-      else if (cdk.used) { result = { success: false, error: 'CDK�ѱ�ʹ��' }; }
+      if (!cdk) { result = { success: false, error: 'CDK不存在' }; }
+      else if (cdk.used) { result = { success: false, error: 'CDK已被使用' }; }
       else {
-        var user = db.users.find(function(u){return u.id===body.userId;});
-        if (!user) { result = { success: false, error: '�û�������' }; }
+        var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+        if (!user) { result = { success: false, error: '用户不存在' }; }
         else {
           cdk.used = true; cdk.usedBy = user.email; cdk.usedAt = new Date().toISOString();
           if (cdk.type === 'coins') {
             user.orbiCoins = (user.orbiCoins || 0) + cdk.value;
-            result = { success: true, message: '�һ��ɹ�! ��� ' + cdk.value + ' Orbi��', balance: user.orbiCoins };
+            result = { success: true, message: '兑换成功! 获得 ' + cdk.value + ' Orbi币', balance: user.orbiCoins };
           } else if (cdk.type === 'membership') {
             if (cdk.days === -1) { user.permanentMember = true; result = { success: true, message: '�һ��ɹ�! ������û�Ա' }; }
             else {
@@ -344,9 +344,9 @@ var server = http.createServer(async function(req, res) {
       result = [
         { index: 0, days: 1, cost: 10, label: '1���Ա' },
         { index: 1, days: 7, cost: 50, label: '7���Ա' },
-        { index: 2, days: 30, cost: 500, label: '�»�Ա' },
+        { index: 2, days: 30, cost: 500, label: '月会员' },
         { index: 3, days: 365, cost: 5000, label: '���Ա' },
-        { index: 4, days: -1, cost: 19821220, label: '���û�Ա' }
+        { index: 4, days: -1, cost: 19821220, label: '永久会员' }
       ];
     }
 
