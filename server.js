@@ -307,10 +307,10 @@ var server = http.createServer(async function(req, res) {
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else {
         var plans = [
-          { days: 1, cost: 10, label: '1���Ա' },
-          { days: 7, cost: 50, label: '7���Ա' },
+          { days: 1, cost: 10, label: '1天会员' },
+          { days: 7, cost: 50, label: '7天会员' },
           { days: 30, cost: 500, label: '月会员' },
-          { days: 365, cost: 5000, label: '���Ա' },
+          { days: 365, cost: 5000, label: '年会员' },
           { days: -1, cost: 19821220, label: '永久会员' }
         ];
         var plan = plans[body.planIndex];
@@ -387,10 +387,10 @@ var server = http.createServer(async function(req, res) {
     // ===== MEMBERSHIP PLANS =====
     else if (url === '/api/membership-plans') {
       result = [
-        { index: 0, days: 1, cost: 10, label: '1���Ա' },
-        { index: 1, days: 7, cost: 50, label: '7���Ա' },
+        { index: 0, days: 1, cost: 10, label: '1天会员' },
+        { index: 1, days: 7, cost: 50, label: '7天会员' },
         { index: 2, days: 30, cost: 500, label: '月会员' },
-        { index: 3, days: 365, cost: 5000, label: '���Ա' },
+        { index: 3, days: 365, cost: 5000, label: '年会员' },
         { index: 4, days: -1, cost: 19821220, label: '永久会员' }
       ];
     }
