@@ -92,8 +92,7 @@ var server = http.createServer(async function(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
-
-  var adminEPs = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config']; if(adminEPs.indexOf(url)>=0&&req.headers['x-api-key']&&req.headers['x-api-key']!==API_KEY){res.writeHead(403);res.end(JSON.stringify({error:'Invalid API key'}));return;}
+  var aeps=['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config']; if(aeps.indexOf(url)>=0&&req.headers['x-api-key']&&req.headers['x-api-key']!==API_KEY){res.writeHead(403);res.end(JSON.stringify({error:'Invalid API key'}));return;}
 
   var url = req.url.split('?')[0];
   var query = {};
