@@ -110,9 +110,14 @@ var server = http.createServer(async function(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
-  var aeps=['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config']; if(aeps.indexOf(url)>=0&&req.headers['x-api-key']&&req.headers['x-api-key']!==API_KEY){res.writeHead(403);res.end(JSON.stringify({error:'Invalid API key'}));return;}
-
-  var url = req.url.split('?')[0];
+    var url = req.url.split('?')[0];
+  // API key guard for admin endpoints
+  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config'];
+  if (ADMIN_ENDPOINTS.indexOf(url) >= 0 && req.headers['x-api-key'] && req.headers['x-api-key'] !== API_KEY) {
+    res.writeHead(403);
+    res.end(JSON.stringify({error: 'Invalid API key'}));
+    return;
+  }
   var query = {};
   if (req.url.indexOf('?') > -1) { new URLSearchParams(req.url.split('?')[1]).forEach(function(v,k){ query[k]=v; }); }
   var body = req.method === 'POST' ? await parseBody(req) : {};
@@ -250,7 +255,7 @@ var server = http.createServer(async function(req, res) {
     }
     else if (url === '/api/unban' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.banned = false; user.banReason = ''; saveDb(); sseSend(body.userId, 'refresh', {banned:false}); result = { success: true }; }
+      if (user) { user.banned = false; user.banReason = ''; saveDb(); sseSend(user.id, 'refresh', {banned:false}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     // ===== ADMIN: COINS =====
@@ -268,17 +273,17 @@ var server = http.createServer(async function(req, res) {
     // ===== ADMIN: MEMBERSHIP =====
     else if (url === '/api/set-permanent' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.permanentMember = true; saveDb(); sseSend(body.userId, 'refresh', {permanentMember:true}); result = { success: true }; }
+      if (user) { user.permanentMember = true; saveDb(); sseSend(user.id, 'refresh', {permanentMember:true}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/remove-permanent' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.permanentMember = false; saveDb(); sseSend(body.userId, 'refresh', {permanentMember:false}); result = { success: true }; }
+      if (user) { user.permanentMember = false; saveDb(); sseSend(user.id, 'refresh', {permanentMember:false}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/promote' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.role = 'admin'; saveDb(); sseSend(body.userId, 'refresh', {role:'admin'}); result = { success: true }; }
+      if (user) { user.role = 'admin'; saveDb(); sseSend(user.id, 'refresh', {role:'admin'}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/delete-user' && req.method === 'POST') {
@@ -293,7 +298,7 @@ var server = http.createServer(async function(req, res) {
         var plans = { '1yuan': 10, '10yuan': 100, '50yuan': 1000 };
         var coins = plans[body.plan] || parseInt(body.customAmount) || 0;
         if (coins <= 0) { result = { success: false, error: '��Ч��ֵ���' }; }
-        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); sseSend(body.userId, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, added: coins, balance: user.orbiCoins }; }
+        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, added: coins, balance: user.orbiCoins }; }
       }
     }
     // ===== BUY MEMBERSHIP =====
@@ -320,7 +325,7 @@ var server = http.createServer(async function(req, res) {
             base.setDate(base.getDate() + plan.days);
             user.memberUntil = base.toISOString();
           }
-          saveDb(); sseSend(body.userId, 'refresh', {orbiCoins:user.orbiCoins, memberUntil:user.memberUntil, permanentMember:user.permanentMember});
+          saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins, memberUntil:user.memberUntil, permanentMember:user.permanentMember});
           result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil: user.memberUntil, permanentMember: user.permanentMember };
         }
       }
