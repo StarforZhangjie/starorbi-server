@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a2e">
+<title>StarOrbi Mobile</title><link rel="manifest" href="/manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="icon" href="/icon-192.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a2e;--card:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--accent:#667eea;--text:#e2e8f0;--muted:#94a3b8;--gold:#f59e0b}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:0 auto;padding:12px;padding-bottom:80px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;margin-bottom:16px}
+.logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,#667eea,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.user-info{display:flex;align-items:center;gap:8px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:white}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;backdrop-filter:blur(10px)}
+.card-title{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px}
+.search-box{display:flex;gap:8px;margin-bottom:12px}
+.search-input{flex:1;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:15px;outline:none}
+.btn{padding:10px 20px;border-radius:12px;border:none;font-size:14px;font-weight:500;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#a78bfa);color:white}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:8px;background:rgba(255,255,255,0.1);color:var(--text)}
+.result-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;cursor:pointer}
+.result-item:active{background:rgba(255,255,255,0.05)}
+.result-cover{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#667eea33,#a78bfa33);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent);flex-shrink:0}
+.result-info{flex:1;min-width:0}
+.result-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-artist{font-size:12px;color:var(--muted)}
+.result-platform{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,0.15);color:var(--accent)}
+.queue-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border-bottom:1px solid var(--border)}
+.queue-num{width:28px;height:28px;border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--accent);flex-shrink:0}
+.queue-info{flex:1;min-width:0}
+.queue-song{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.queue-artist{font-size:12px;color:var(--muted)}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,46,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:100}
+.tab{flex:1;padding:10px 0;text-align:center;font-size:11px;color:var(--muted);cursor:pointer}
+.tab.active{color:var(--accent)}
+.tab-icon{font-size:20px;margin-bottom:2px}
+.tab-label{font-size:10px}
+.section{display:none}
+.section.active{display:block}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);padding:12px 24px;border-radius:12px;font-size:14px;z-index:9999;transition:transform 0.3s;max-width:90%}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:rgba(16,185,129,0.9);color:white}
+.toast.error{background:rgba(239,68,68,0.9);color:white}
+.member-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;font-size:12px;margin-bottom:12px}
+.coins-bar{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--gold);font-weight:600}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.form-input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);font-size:15px;outline:none}
+.btn-full{width:100%;padding:14px;font-size:16px;font-weight:600}
+.login-page{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{width:100%;max-width:360px}
+</style>
+</head>
+<body>
+<div id="login-page" class="login-page" style="display:none">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:40px;margin-bottom:8px">&#10022;</div>
+      <h1 style="font-size:24px;font-weight:700;background:linear-gradient(135deg,#667eea,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">StarOrbi</h1>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px">移动版 v4.0.0</p>
+    </div>
+    <div class="form-group"><label class="form-label">邮箱</label><input type="email" class="form-input" id="m-email" placeholder="请输入邮箱"></div>
+    <div class="form-group"><label class="form-label">密码</label><input type="password" class="form-input" id="m-password" placeholder="请输入密码"></div>
+    <button class="btn btn-primary btn-full" onclick="mLogin()">登 录</button>
+  </div>
+</div>
+<div id="main-app" class="app" style="display:none">
+  <div class="header">
+    <div class="logo">StarOrbi</div>
+    <div class="user-info">
+      <div class="coins-bar"><span>&#127775;</span><span id="m-coins">0</span></div>
+      <div class="avatar" id="m-avatar" onclick="mSwitchTab('profile')">U</div>
+    </div>
+  </div>
+  <div id="m-member-bar" class="member-bar" style="display:none"></div>
+  <div id="section-search" class="section active">
+    <div class="card">
+      <div class="card-title">&#127925; 搜索点歌</div>
+      <div class="search-box">
+        <input type="text" class="search-input" id="m-search" placeholder="输入歌名或歌手">
+        <button class="btn btn-primary" onclick="mSearch()" style="padding:12px 16px">搜索</button>
+      </div>
+      <div id="m-results"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">&#127909; B站视频</div>
+      <div class="search-box">
+        <input type="text" class="search-input" id="m-bv" placeholder="输入BV号">
+        <button class="btn btn-primary" onclick="mAddBv()" style="padding:12px 16px">加入</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#fe2c55">&#127916; 抖音视频</div>
+      <div class="search-box">
+        <input type="text" class="search-input" id="m-douyin" placeholder="输入抖音视频链接或ID">
+        <button class="btn btn-primary" onclick="mAddDouyin()" style="padding:12px 16px">加入</button>
+      </div>
+    </div>
+  </div>
+  <div id="section-queue" class="section">
+    <div class="card">
+      <div class="card-title">&#127925; 点歌队列 <span id="m-queue-count" style="font-size:12px;color:var(--muted)">(0)</span></div>
+      <div id="m-queue-list"><div class="empty">暂无歌曲</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">&#127909; 视频队列 <span id="m-video-count" style="font-size:12px;color:var(--muted)">(0)</span></div>
+      <div id="m-video-list"><div class="empty">暂无视频</div></div>
+    </div>
+  </div>
+  <div id="section-profile" class="section">
+    <div class="card" style="text-align:center">
+      <div class="avatar" style="width:64px;height:64px;font-size:28px;margin:0 auto 12px" id="m-pavatar">U</div>
+      <div style="font-size:18px;font-weight:600" id="m-pname">-</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px" id="m-pemail">-</div>
+    </div>
+    <div class="card">
+      <div class="card-title">账户信息</div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Orbi币</span><span style="color:var(--gold);font-weight:600" id="m-pcoins">0</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">会员状态</span><span id="m-pmember">-</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:var(--muted)">角色</span><span id="m-prole">-</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CDK兑换</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="form-input" id="m-cdk" placeholder="输入CDK码" style="flex:1">
+        <button class="btn btn-primary" onclick="mRedeem()">兑换</button>
+      </div>
+    </div>
+    <button class="btn btn-full" style="background:linear-gradient(135deg,#667eea,#a78bfa);margin-bottom:8px" onclick="mInstallPWA()">安装到手机</button><button class="btn btn-full" style="background:rgba(239,68,68,0.2);color:#ef4444" onclick="mLogout()">退出登录</button>
+  </div>
+</div>
+<div class="tab-bar">
+  <div class="tab active" onclick="mSwitchTab('search')"><div class="tab-icon">&#128269;</div><div class="tab-label">搜索</div></div>
+  <div class="tab" onclick="mSwitchTab('queue')"><div class="tab-icon">&#127925;</div><div class="tab-label">队列</div></div>
+  <div class="tab" onclick="mSwitchTab('profile')"><div class="tab-icon">&#9881;</div><div class="tab-label">我的</div></div>
+</div>
+<div class="toast" id="m-toast"></div>
+<script>
+var API=localStorage.getItem('orbi_server_url')||'';
+var user=null;try{user=JSON.parse(localStorage.getItem('user')||'null')}catch(e){}
+function mToast(m,t){var e=document.getElementById('m-toast');e.textContent=m;e.className='toast show '+(t||'');setTimeout(function(){e.className='toast'},3000)}
+function mSwitchTab(n){document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});document.getElementById('section-'+n).classList.add('active');document.querySelectorAll('.tab').forEach(function(t,i){t.classList.remove('active');if((n==='search'&&i===0)||(n==='queue'&&i===1)||(n==='profile'&&i===2))t.classList.add('active')});if(n==='queue'){mLoadQueue();mLoadVideoQueue()}}
+async function mApi(ep,d){if(!API)throw new Error('未配置服务器');var r=await fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d||{})});return r.json()}
+function mInit(){if(!API){API=prompt('请输入服务器地址:','https://starorbiserver.onrender.com');if(API)localStorage.setItem('orbi_server_url',API)}if(!user){document.getElementById('login-page').style.display='flex';return}document.getElementById('main-app').style.display='block';document.getElementById('m-avatar').textContent=user.username[0].toUpperCase();mRefresh();setInterval(mRefresh,15000)}
+async function mRefresh(){try{var r=await mApi('/api/user-info',{userId:user.id});if(r&&r.success&&r.user){user.orbiCoins=r.user.orbiCoins||0;user.permanentMember=r.user.permanentMember;user.memberUntil=r.user.memberUntil;user.role=r.user.role;localStorage.setItem('user',JSON.stringify(user));document.getElementById('m-coins').textContent=user.orbiCoins;document.getElementById('m-pcoins').textContent=user.orbiCoins;document.getElementById('m-pavatar').textContent=user.username[0].toUpperCase();document.getElementById('m-pname').textContent=user.username;document.getElementById('m-pemail').textContent=user.email;document.getElementById('m-prole').textContent=user.role==='admin'?'管理员':'用户';var mb=document.getElementById('m-member-bar');var mp=document.getElementById('m-pmember');if(user.role==='admin'){mb.style.display='flex';mb.style.background='rgba(16,185,129,0.15)';mb.innerHTML='<span style="color:#10b981">管理员</span>';mp.innerHTML='<span style="color:#10b981">管理员</span>'}else if(user.permanentMember){mb.style.display='flex';mb.style.background='rgba(245,158,11,0.15)';mb.innerHTML='<span style="color:#f59e0b">永久会员</span>';mp.innerHTML='<span style="color:#f59e0b">永久会员</span>'}else if(user.memberUntil&&new Date(user.memberUntil)>new Date()){var rem=Math.ceil((new Date(user.memberUntil)-new Date())/86400000);mb.style.display='flex';mb.style.background='rgba(16,185,129,0.15)';mb.innerHTML='<span style="color:#10b981">会员至 '+new Date(user.memberUntil).toLocaleDateString('zh-CN')+' (剩余'+rem+'天)</span>';mp.innerHTML='<span style="color:#10b981">'+rem+'天</span>'}else{mb.style.display='flex';mb.style.background='rgba(239,68,68,0.15)';mb.innerHTML='<span style="color:#ef4444">未开通会员</span>';mp.innerHTML='<span style="color:#ef4444">未开通</span>'}}}catch(e){}}
+async function mLogin(){var e=document.getElementById('m-email').value.trim();var p=document.getElementById('m-password').value;if(!e||!p){mToast('请输入邮箱和密码','error');return}try{var r=await mApi('/api/login',{email:e,password:p});if(r.success){user=r.user;localStorage.setItem('user',JSON.stringify(user));document.getElementById('login-page').style.display='none';async function mSavePlatform(){var plats=[{k:'douyin',i:'m-douyin-c'},{k:'bilibili',i:'m-bilibili-c'},{k:'netease',i:'m-netease-c'},{k:'qq',i:'m-qq-c'},{k:'kugou',i:'m-kugou-c'}];var saved=0;try{for(var i=0;i<plats.length;i++){var v=document.getElementById(plats[i].i).value.trim();if(v){await mApi('/api/platform/save',{userId:user.id,platform:plats[i].k,accountData:{cookie:v}});saved++}}if(saved>0)mToast('已保存 '+saved+' 个平台','success');else mToast('请至少输入一个平台Cookie','error')}catch(e){mToast('保存失败','error')}}
+// ===== PWA Install =====
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); deferredPrompt = e; });
+function mInstallPWA() {
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(r) { if (r.outcome === 'accepted') mToast('安装成功！', 'success'); deferredPrompt = null; }); }
+  else mToast('请使用 Chrome 浏览器，点击菜单 → 添加到主屏幕', 'info');
+}
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(function(){}); }mInit();mToast('登录成功','success')}else mToast(r.error,'error')}catch(e){mToast('登录失败','error')}}
+function mLogout(){localStorage.removeItem('user');user=null;location.reload()}
+async function mSearch(){var q=document.getElementById('m-search').value.trim();if(!q)return;document.getElementById('m-results').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">搜索中...</div>';try{var r=await mApi('/api/search-music',{query:q});if(!r||!r.length){document.getElementById('m-results').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">未找到</div>';return}var pn={netease:'网易',qq:'QQ',kugou:'酷狗'};var h='';r.forEach(function(s,i){h+='<div class="result-item" onclick="mAddSong('+i+')"><div class="result-cover">'+(pn[s.platform]||'').charAt(0)+'</div><div class="result-info"><div class="result-name">'+s.songName+'</div><div class="result-artist">'+s.artist+'</div></div><span class="result-platform">'+(pn[s.platform]||s.platform)+'</span></div>'});document.getElementById('m-results').innerHTML=h;window._mResults=r}catch(e){document.getElementById('m-results').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">搜索失败</div>'}}
+async function mAddSong(i){var s=window._mResults[i];if(!s)return;var isM=user.role==='admin'||user.permanentMember||(user.memberUntil&&new Date(user.memberUntil)>new Date());if(!isM){mToast('需要开通会员','error');return}try{var r=await mApi('/api/add-song',{requesterId:user.id,requesterName:user.username,songName:s.songName,artist:s.artist,platform:s.platform,songId:s.songId||'',songMid:s.songMid||'',hash:s.hash||''});if(r.success){mToast('已添加 '+s.songName,'success');mLoadQueue()}else mToast(r.error,'error')}catch(e){mToast('添加失败','error')}}
+async function mAddBv(){var b=document.getElementById('m-bv').value.trim();if(!b){mToast('请输入BV号','error');return}var isM=user.role==='admin'||user.permanentMember||(user.memberUntil&&new Date(user.memberUntil)>new Date());if(!isM){mToast('需要开通会员','error');return}try{var r=await mApi('/api/add-video',{requesterId:user.id,requesterName:user.username,bvCode:b,title:''});if(r.success){mToast('已加入','success');document.getElementById('m-bv').value='';mLoadVideoQueue()}else mToast(r.error,'error')}catch(e){mToast('添加失败','error')}}
+async function mAddDouyin(){var d=document.getElementById('m-douyin').value.trim();if(!d){mToast('请输入抖音视频链接','error');return}var isM=user.role==='admin'||user.permanentMember||(user.memberUntil&&new Date(user.memberUntil)>new Date());if(!isM){mToast('需要开通会员','error');return}var vid=d;if(d.includes('douyin.com/video/')){var m=d.match(/video\/(\d+)/);if(m)vid=m[1]}try{var r=await mApi('/api/add-douyin-video',{requesterId:user.id,requesterName:user.username,videoId:vid});if(r.success){mToast('已加入','success');document.getElementById('m-douyin').value='';mLoadVideoQueue()}else mToast(r.error,'error')}catch(e){mToast('添加失败','error')}}
+async function mLoadQueue(){try{var r=await mApi('/api/get-queue',{});if(r&&Array.isArray(r)){document.getElementById('m-queue-count').textContent='('+r.length+')';if(!r.length){document.getElementById('m-queue-list').innerHTML='<div class="empty">暂无歌曲</div>';return}var h='';r.forEach(function(s,i){h+='<div class="queue-item"><div class="queue-num">'+(i+1)+'</div><div class="queue-info"><div class="queue-song">'+s.song_name+'</div><div class="queue-artist">'+s.artist+' · '+s.requesterName+'</div></div></div>'});document.getElementById('m-queue-list').innerHTML=h}}catch(e){}}
+async function mLoadVideoQueue(){try{var r=await mApi('/api/get-video-queue',{});if(r&&Array.isArray(r)){document.getElementById('m-video-count').textContent='('+r.length+')';if(!r.length){document.getElementById('m-video-list').innerHTML='<div class="empty">暂无视频</div>';return}var h='';r.forEach(function(v,i){h+='<div class="queue-item"><div class="queue-num">'+(i+1)+'</div><div class="queue-info"><div class="queue-song">'+(v.bvCode||v.videoId||'')+'</div><div class="queue-artist">'+v.requesterName+'</div></div></div>'});document.getElementById('m-video-list').innerHTML=h}}catch(e){}}
+async function mRedeem(){var c=document.getElementById('m-cdk').value.trim().toUpperCase();if(!c){mToast('请输入CDK码','error');return}try{var r=await mApi('/api/redeem-cdk',{code:c,userId:user.id});if(r.success){mToast(r.message,'success');document.getElementById('m-cdk').value='';mRefresh()}else mToast(r.error,'error')}catch(e){mToast('兑换失败','error')}}
+async function mSavePlatform(){var plats=[{k:'douyin',i:'m-douyin-c'},{k:'bilibili',i:'m-bilibili-c'},{k:'netease',i:'m-netease-c'},{k:'qq',i:'m-qq-c'},{k:'kugou',i:'m-kugou-c'}];var saved=0;try{for(var i=0;i<plats.length;i++){var v=document.getElementById(plats[i].i).value.trim();if(v){await mApi('/api/platform/save',{userId:user.id,platform:plats[i].k,accountData:{cookie:v}});saved++}}if(saved>0)mToast('已保存 '+saved+' 个平台','success');else mToast('请至少输入一个平台Cookie','error')}catch(e){mToast('保存失败','error')}}
+// ===== PWA Install =====
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); deferredPrompt = e; });
+function mInstallPWA() {
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(r) { if (r.outcome === 'accepted') mToast('安装成功！', 'success'); deferredPrompt = null; }); }
+  else mToast('请使用 Chrome 浏览器，点击菜单 → 添加到主屏幕', 'info');
+}
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(function(){}); }mInit();
+</script>
+</body>
+</html>

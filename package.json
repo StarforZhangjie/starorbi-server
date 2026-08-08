@@ -1,0 +1,10 @@
+{
+  "name": "starorbi-server",
+  "version": "4.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "nodemailer": "^9.0.3",
+    "uuid": "^9.0.0"
+  }
+}
