@@ -1,0 +1,32 @@
+{
+    "users":  [
+                  {
+                      "id":  "30cf1d72-73fe-44d5-a0d9-1dc9e3b2e0bf",
+                      "email":  "1204892152@qq.com",
+                      "emailType":  "QQ??",
+                      "username":  "admin",
+                      "passwordHash":  "$2a$10$uV1Z1yj4.z2JAHKiBUS9V.0VKjdcYj/bWPENcMTfnnVv9ruzzmdjG",
+                      "role":  "admin",
+                      "banned":  false,
+                      "banReason":  "",
+                      "orbiCoins":  99999,
+                      "permanentMember":  true,
+                      "createdAt":  "2026-08-04T10:18:45.520Z"
+                  }
+              ],
+    "songQueue":  [
+
+                  ],
+    "videoQueue":  [
+
+                   ],
+    "admins":  [
+
+               ],
+    "cdks":  [
+
+             ],
+    "config":  {
+                   "version":  "4.0.0"
+               }
+}
