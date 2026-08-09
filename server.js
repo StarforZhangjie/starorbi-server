@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'data', 'database.json');
 const SUPER_ADMIN = '1204892152@qq.com';
 const API_KEY = 'starorbi-admin-2024';
-const VERSION = '4.0.0';
+const VERSION = '4.0.0'; // Build: 20260809-0730
 
 let db = { users: [], cdks: [], admins: [], config: { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' } };
 let verificationCodes = new Map();
@@ -106,7 +106,7 @@ var server = http.createServer(async function(req, res) {
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
   var url = req.url.split('?')[0];
-  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config'];
+  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/demote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config','/api/users-list'];
   if (ADMIN_ENDPOINTS.indexOf(url) >= 0 && req.headers['x-api-key'] !== API_KEY) {
     res.writeHead(403);
     res.end(JSON.stringify({error: 'Invalid API key'}));
@@ -140,6 +140,10 @@ var server = http.createServer(async function(req, res) {
     // ===== HEALTH =====
     else if (url === '/api/health') {
       result = { status: 'ok', version: VERSION, users: db.users.length, cdks: db.cdks.length, time: new Date().toISOString() };
+    }
+    else if (url === '/api/users-list') {
+      if (req.headers['x-api-key'] !== API_KEY) { res.writeHead(403); res.end(JSON.stringify({error: 'API密钥无效'})); return; }
+      result = { success: true, users: db.users.map(function(u){ return { id: u.id, email: u.email, emailType: u.emailType, username: u.username, role: u.role, orbiCoins: u.orbiCoins||0, memberUntil: u.memberUntil, permanentMember: u.permanentMember||false, growth: u.growth||0, isAnnualVip: u.isAnnualVip||false, banned: u.banned, createdAt: u.createdAt }; }) };
     }
     // ===== AUTH =====
     else if (url === '/api/send-code' && req.method === 'POST') {
@@ -180,6 +184,7 @@ var server = http.createServer(async function(req, res) {
           if (body.growth !== undefined) existing.growth = body.growth;
           if (body.isAnnualVip !== undefined) existing.isAnnualVip = body.isAnnualVip;
           saveDb();
+          sseSend(existing.id, 'refresh', {orbiCoins:existing.orbiCoins,memberUntil:existing.memberUntil,permanentMember:existing.permanentMember});
           result = { success: true, message: 'User synced (updated)', user: { id: existing.id, email: existing.email, username: existing.username, role: existing.role, orbiCoins: existing.orbiCoins||0, memberUntil: existing.memberUntil, permanentMember: existing.permanentMember||false } };
         } else {
           var id = body.id || uuid();
@@ -246,13 +251,13 @@ var server = http.createServer(async function(req, res) {
     else if (url === '/api/add-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
-      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); user.growth = (user.growth || 0) + Math.abs(body.amount || 0); saveDb(); result = { success: true, balance: user.orbiCoins, username: user.username }; }
+      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); user.growth = (user.growth || 0) + Math.abs(body.amount || 0); saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins,username:user.username}); result = { success: true, balance: user.orbiCoins, username: user.username }; }
     }
     else if (url === '/api/deduct-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else if ((user.orbiCoins || 0) < (body.amount || 0)) { result = { success: false, error: '余额不足' }; }
-      else { user.orbiCoins -= body.amount; saveDb(); result = { success: true, balance: user.orbiCoins }; }
+      else { user.orbiCoins -= body.amount; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, balance: user.orbiCoins }; }
     }
     // ===== ADMIN: MEMBERSHIP =====
     else if (url === '/api/set-permanent' && req.method === 'POST') {
@@ -267,8 +272,13 @@ var server = http.createServer(async function(req, res) {
     }
     else if (url === '/api/promote' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.role = 'admin'; saveDb(); sseSend(user.id, 'refresh', {role:'admin'}); result = { success: true }; }
+      if (user) { user.role = 'admin'; user.growth = 999999; user.permanentMember = true; saveDb(); sseSend(user.id, 'refresh', {role:'admin'}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
+    }
+    else if (url === '/api/demote' && req.method === 'POST') {
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user && user.email !== SUPER_ADMIN) { user.role = 'user'; saveDb(); sseSend(user.id, 'refresh', {role:'user'}); result = { success: true }; }
+      else { result = { success: false, error: user ? '不能降级超级管理员' : '用户不存在' }; }
     }
     else if (url === '/api/delete-user' && req.method === 'POST') {
       db.users = db.users.filter(function(u){return u.id!==body.userId;});
