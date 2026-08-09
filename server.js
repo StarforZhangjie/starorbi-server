@@ -180,6 +180,7 @@ var server = http.createServer(async function(req, res) {
           if (body.growth !== undefined) existing.growth = body.growth;
           if (body.isAnnualVip !== undefined) existing.isAnnualVip = body.isAnnualVip;
           saveDb();
+          sseSend(existing.id, 'refresh', {orbiCoins:existing.orbiCoins,memberUntil:existing.memberUntil,permanentMember:existing.permanentMember});
           result = { success: true, message: 'User synced (updated)', user: { id: existing.id, email: existing.email, username: existing.username, role: existing.role, orbiCoins: existing.orbiCoins||0, memberUntil: existing.memberUntil, permanentMember: existing.permanentMember||false } };
         } else {
           var id = body.id || uuid();
@@ -246,13 +247,13 @@ var server = http.createServer(async function(req, res) {
     else if (url === '/api/add-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
-      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); saveDb(); result = { success: true, balance: user.orbiCoins, username: user.username }; }
+      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); user.growth = (user.growth || 0) + Math.abs(body.amount || 0); saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins,username:user.username}); result = { success: true, balance: user.orbiCoins, username: user.username }; }
     }
     else if (url === '/api/deduct-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else if ((user.orbiCoins || 0) < (body.amount || 0)) { result = { success: false, error: '余额不足' }; }
-      else { user.orbiCoins -= body.amount; saveDb(); result = { success: true, balance: user.orbiCoins }; }
+      else { user.orbiCoins -= body.amount; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, balance: user.orbiCoins }; }
     }
     // ===== ADMIN: MEMBERSHIP =====
     else if (url === '/api/set-permanent' && req.method === 'POST') {
@@ -282,7 +283,7 @@ var server = http.createServer(async function(req, res) {
         var plans = { '1yuan': 10, '10yuan': 100, '50yuan': 1000 };
         var coins = plans[body.plan] || parseInt(body.customAmount) || 0;
         if (coins <= 0) { result = { success: false, error: '无效充值金额' }; }
-        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, added: coins, balance: user.orbiCoins }; }
+        else { user.orbiCoins = (user.orbiCoins || 0) + coins; user.growth = (user.growth || 0) + coins; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, added: coins, balance: user.orbiCoins }; }
       }
     }
     // ===== BUY MEMBERSHIP =====
@@ -291,18 +292,18 @@ var server = http.createServer(async function(req, res) {
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else {
         var plans = [
-          { days: 1, cost: 10, label: '1天会员' },
-          { days: 7, cost: 50, label: '7天会员' },
-          { days: 30, cost: 500, label: '月会员' },
-          { days: 365, cost: 5000, label: '年会员' },
-          { days: -1, cost: 19821220, label: '永久会员' }
+          { days: 30, cost: 300, label: 'OrbiVIP 月费会员', growthBonus: 300, type: 'monthly' },
+          { days: 365, cost: 3000, label: 'OrbiVIP 年费会员', growthBonus: 3600, type: 'annual' },
+          { days: -1, cost: 19821220, label: '永久会员', growthBonus: 999999, type: 'permanent' }
         ];
         var plan = plans[body.planIndex];
         if (!plan) { result = { success: false, error: '无效套餐' }; }
         else if ((user.orbiCoins || 0) < plan.cost) { result = { success: false, error: 'Orbi币不足' }; }
         else {
           user.orbiCoins -= plan.cost;
-          if (plan.days === -1) { user.permanentMember = true; }
+          user.growth = (user.growth || 0) + (plan.growthBonus || 0);
+          if (plan.type === 'annual') user.isAnnualVip = true;
+          if (plan.days === -1) { user.permanentMember = true; user.growth = (user.growth || 0) + 999999; }
           else {
             var now = new Date();
             var base = (user.memberUntil && new Date(user.memberUntil) > now) ? new Date(user.memberUntil) : now;
@@ -341,7 +342,7 @@ var server = http.createServer(async function(req, res) {
         else {
           cdk.used = true; cdk.usedBy = user.email; cdk.usedAt = new Date().toISOString();
           if (cdk.type === 'coins') {
-            user.orbiCoins = (user.orbiCoins || 0) + cdk.value;
+            user.orbiCoins = (user.orbiCoins || 0) + cdk.value; user.growth = (user.growth || 0) + cdk.value;
             result = { success: true, message: '兑换成功! 获得 ' + cdk.value + ' Orbi币', balance: user.orbiCoins };
           } else if (cdk.type === 'membership') {
             if (cdk.days === -1) { user.permanentMember = true; result = { success: true, message: '兑换成功! 获得永久会员' }; }
@@ -372,11 +373,9 @@ var server = http.createServer(async function(req, res) {
     // ===== MEMBERSHIP PLANS =====
     else if (url === '/api/membership-plans') {
       result = [
-        { index: 0, days: 1, cost: 10, label: '1天会员' },
-        { index: 1, days: 7, cost: 50, label: '7天会员' },
-        { index: 2, days: 30, cost: 500, label: '月会员' },
-        { index: 3, days: 365, cost: 5000, label: '年会员' },
-        { index: 4, days: -1, cost: 19821220, label: '永久会员' }
+        { index: 0, days: 30, cost: 300, label: 'OrbiVIP 月费会员', growthBonus: 300, type: 'monthly' },
+        { index: 1, days: 365, cost: 3000, label: 'OrbiVIP 年费会员', growthBonus: 3600, type: 'annual' },
+        { index: 2, days: -1, cost: 19821220, label: '永久会员', growthBonus: 999999, type: 'permanent' }
       ];
     }
 
