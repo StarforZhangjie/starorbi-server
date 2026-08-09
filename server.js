@@ -1,4 +1,4 @@
-const http = require('http');
+﻿const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -13,6 +13,24 @@ const VERSION = '4.0.0';
 
 let db = { users: [], cdks: [], admins: [], config: { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' } };
 let verificationCodes = new Map();
+// SSE real-time push
+let sseClients = new Map(); // userId -> [res, res, ...]
+function sseSend(userId, event, data) {
+  var clients = sseClients.get(userId);
+  if (!clients) return;
+  var payload = 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n';
+  clients.forEach(function(res) {
+    try { res.write(payload); } catch(e) {}
+  });
+}
+function sseBroadcast(event, data) {
+  var payload = 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n';
+  sseClients.forEach(function(clients) {
+    clients.forEach(function(res) {
+      try { res.write(payload); } catch(e) {}
+    });
+  });
+}
 
 // Load database
 function loadDb() {
@@ -21,16 +39,7 @@ function loadDb() {
   if (!db.cdks) db.cdks = [];
   if (!db.admins) db.admins = [];
   if (!db.config) db.config = { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' };
-  // Always ensure SUPER_ADMIN exists (survives Render disk wipes)
-  if (db.admins.length === 0 || !db.admins.find(function(a){return a.email===SUPER_ADMIN;})) {
-    db.admins.push({ id: uuid(), username: 'superadmin', passwordHash: bcrypt.hashSync('admin123', 10), email: SUPER_ADMIN });
-    console.log('[Startup] SUPER_ADMIN account recreated');
-  }
-  // Also ensure SUPER_ADMIN exists in users table for backward compat
-  if (!db.users.find(function(u){return u.email===SUPER_ADMIN;})) {
-    db.users.push({ id: uuid(), email: SUPER_ADMIN, emailType: 'qq', username: 'SuperAdmin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'admin', banned: false, banReason: '', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true, createdAt: new Date().toISOString() });
-    console.log('[Startup] SUPER_ADMIN user record recreated');
-  }
+  if (db.admins.length === 0) db.admins.push({ id: uuid(), username: 'superadmin', passwordHash: bcrypt.hashSync('admin123', 10), email: SUPER_ADMIN });
   saveDb();
 }
 
@@ -52,18 +61,18 @@ async function sendVerificationCode(email) {
   var config = db.config;
   if (!config.smtpUser || !config.smtpPass) {
     console.log('[DEV] Code for ' + email + ': ' + code);
-    return { success: true, message: '验证码: ' + code + ' (DEV模式)', devCode: code };
+    return { success: true, message: '验证码: ' + code + ' (DEVģʽ)', devCode: code };
   }
   try {
     var transporter = nodemailer.createTransport({ host: config.smtpHost, port: config.smtpPort, secure: true, auth: { user: config.smtpUser, pass: config.smtpPass } });
-    await transporter.sendMail({ from: config.smtpFrom || config.smtpUser, to: email, subject: 'StarOrbi - 验证码', text: '验证码: ' + code + ' 5分钟有效', html: '<div style="padding:20px"><h2 style="color:#667eea">StarOrbi 星轨音乐</h2><p>验证码:</p><div style="font-size:32px;font-weight:bold;color:#667eea;letter-spacing:8px;padding:16px;background:#f5f5ff;border-radius:12px;text-align:center">' + code + '</div><p style="color:#999">5分钟内有效</p></div>' });
-    return { success: true, message: '验证码已发送至 ' + email };
-  } catch(e) { return { success: false, error: '发送失败: ' + e.message }; }
+    await transporter.sendMail({ from: config.smtpFrom || config.smtpUser, to: email, subject: 'StarOrbi - ��֤��', text: '验证码: ' + code + ' 5������Ч', html: '<div style="padding:20px"><h2 style="color:#667eea">StarOrbi �ǹ�����</h2><p>��֤��:</p><div style="font-size:32px;font-weight:bold;color:#667eea;letter-spacing:8px;padding:16px;background:#f5f5ff;border-radius:12px;text-align:center">' + code + '</div><p style="color:#999">5��������Ч</p></div>' });
+    return { success: true, message: '��֤���ѷ����� ' + email };
+  } catch(e) { return { success: false, error: '����ʧ��: ' + e.message }; }
 }
 
 function verifyCode(email, code) {
   var record = verificationCodes.get(email);
-  if (!record) return { success: false, error: '请先获取验证码' };
+  if (!record) return { success: false, error: '���Ȼ�ȡ��֤��' };
   if (Date.now() > record.expires) { verificationCodes.delete(email); return { success: false, error: '验证码已过期' }; }
   if (record.code !== code) return { success: false, error: '验证码错误' };
   verificationCodes.delete(email);
@@ -101,55 +110,50 @@ var server = http.createServer(async function(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
-
-  // Admin API endpoints require API key validation
-  var adminEndpoints = ['/api/users', '/api/ban', '/api/unban', '/api/add-coins', '/api/deduct-coins', '/api/set-permanent', '/api/remove-permanent', '/api/promote', '/api/delete-user', '/api/recharge', '/api/generate-cdk', '/api/cdk-list', '/api/update-config'];
-  var isAdminEndpoint = adminEndpoints.indexOf(url) >= 0;
-  var clientApiKey = req.headers['x-api-key'] || '';
-  if (isAdminEndpoint && clientApiKey && clientApiKey !== API_KEY) {
+    var url = req.url.split('?')[0];
+  // API key guard for admin endpoints
+  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config'];
+  if (ADMIN_ENDPOINTS.indexOf(url) >= 0 && req.headers['x-api-key'] && req.headers['x-api-key'] !== API_KEY) {
     res.writeHead(403);
-    res.end(JSON.stringify({ error: 'Invalid API key' }));
+    res.end(JSON.stringify({error: 'Invalid API key'}));
     return;
   }
-
-  var url = req.url.split('?')[0];
   var query = {};
   if (req.url.indexOf('?') > -1) { new URLSearchParams(req.url.split('?')[1]).forEach(function(v,k){ query[k]=v; }); }
   var body = req.method === 'POST' ? await parseBody(req) : {};
 
   try {
-    // ===== STATIC WEBSITE =====
-    if (url === '/' || url === '/index.html') {
-      try {
-        var html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
-        return;
-      } catch(e) {}
-    }
-    if (url.startsWith('/assets/')) {
-      var assetPath = path.join(__dirname, 'public', url);
-      try {
-        if (fs.existsSync(assetPath)) {
-          var content = fs.readFileSync(assetPath);
-          var ext = path.extname(assetPath).toLowerCase();
-          var mimeTypes = { '.css':'text/css','.js':'application/javascript','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ico':'image/x-icon','.woff2':'font/woff2','.mp4':'video/mp4' };
-          res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
-          res.end(content);
-          return;
-        }
-      } catch(e) {}
-    }
-
     var result = { error: 'Unknown endpoint' };
 
     // ===== HEALTH =====
-    if (url === '/api/health') {
+    // ===== SSE REAL-TIME STREAM =====
+    if (url === '/api/sync/stream') {
+      var uid = query.userId;
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.write('event: connected\ndata: {"status":"ok"}\n\n');
+      if (!sseClients.has(uid)) sseClients.set(uid, []);
+      sseClients.get(uid).push(res);
+      req.on('close', function() {
+        var arr = sseClients.get(uid);
+        if (arr) {
+          var idx = arr.indexOf(res);
+          if (idx >= 0) arr.splice(idx, 1);
+          if (arr.length === 0) sseClients.delete(uid);
+        }
+      });
+      return; // Don't continue to normal response
+    }
+    else if (url === '/api/health') {
       result = { status: 'ok', version: VERSION, users: db.users.length, cdks: db.cdks.length, time: new Date().toISOString() };
     }
     // ===== AUTH =====
     else if (url === '/api/send-code' && req.method === 'POST') {
-      if (!body.email) { result = { success: false, error: '请输入邮箱' }; }
+      if (!body.email) { result = { success: false, error: '网易邮箱' }; }
       else if (!getEmailType(body.email)) { result = { success: false, error: '仅支持QQ/网易/谷歌邮箱' }; }
       else if (db.users.find(function(u){return u.email===body.email;})) { result = { success: false, error: '该邮箱已注册' }; }
       else { result = await sendVerificationCode(body.email); }
@@ -158,57 +162,73 @@ var server = http.createServer(async function(req, res) {
       var emailType = getEmailType(body.email);
       if (!emailType) { result = { success: false, error: '仅支持QQ/网易/谷歌邮箱' }; }
       else if (db.users.find(function(u){return u.email===body.email;})) { result = { success: false, error: '该邮箱已注册' }; }
-      else if (!body.username || body.username.length < 2) { result = { success: false, error: '用户名至少2字符' }; }
+      else if (!body.username || body.username.length < 2) { result = { success: false, error: '�û�������2�ַ�' }; }
       else if (!body.password || body.password.length < 6) { result = { success: false, error: '密码至少6位' }; }
-      else if (!body.code) { result = { success: false, error: '请输入验证码' }; }
+      else if (!body.code) { result = { success: false, error: '��������֤��' }; }
       else {
         var vr = verifyCode(body.email, body.code);
         if (!vr.success) { result = vr; }
         else {
           var id = uuid();
           var isAdmin = body.email.toLowerCase() === SUPER_ADMIN;
-          db.users.push({ id: id, email: body.email, emailType: emailType, username: body.username, passwordHash: bcrypt.hashSync(body.password, 10), role: isAdmin ? 'admin' : 'user', banned: false, banReason: '', orbiCoins: 0, memberUntil: new Date(Date.now()+3*86400000).toISOString(), permanentMember: false, createdAt: new Date().toISOString() });
+          db.users.push({ id: id, email: body.email, emailType: emailType, username: body.username, passwordHash: bcrypt.hashSync(body.password, 10), role: isAdmin ? 'admin' : 'user', banned: false, banReason: '', orbiCoins: 50, memberUntil: null, permanentMember: false, createdAt: new Date().toISOString() });
           saveDb();
-          result = { success: true, user: { id: id, email: body.email, username: body.username, emailType: emailType, role: isAdmin ? 'admin' : 'user', orbiCoins: 0, memberUntil: new Date(Date.now()+3*86400000).toISOString() } };
+          result = { success: true, user: { id: id, email: body.email, username: body.username, emailType: emailType, role: isAdmin ? 'admin' : 'user', orbiCoins: 50 } };
         }
       }
     }
+    
+    // ===== SYNC USER (client pushes registration/login to server) =====
+    else if (url === '/api/sync-user' && req.method === 'POST') {
+      // Reject fake/invalid emails
+      if (!body.email || body.email === 'synced@server' || body.email.indexOf('@') < 0) {
+        result = { success: false, error: 'Invalid email for sync' };
+      } else {
+      var existing = db.users.find(function(u){return u.email===body.email;});
+      if (existing) {
+        // Update existing user data
+        if (body.orbiCoins !== undefined) existing.orbiCoins = body.orbiCoins;
+        if (body.permanentMember !== undefined) existing.permanentMember = body.permanentMember;
+        if (body.memberUntil !== undefined) existing.memberUntil = body.memberUntil;
+        if (body.growth !== undefined) existing.growth = body.growth;
+        if (body.isAnnualVip !== undefined) existing.isAnnualVip = body.isAnnualVip;
+        saveDb();
+        result = { success: true, message: 'User synced (updated)', user: { id: existing.id, email: existing.email, username: existing.username, role: existing.role, orbiCoins: existing.orbiCoins||0, memberUntil: existing.memberUntil, permanentMember: existing.permanentMember||false } };
+      } else {
+        // Create new user on server
+        var id = body.id || uuid();
+        var emailType = body.emailType || '';
+        var username = body.username || body.email;
+        var passwordHash = body.passwordHash || '';
+        db.users.push({ id: id, email: body.email, emailType: emailType, username: username, passwordHash: passwordHash, role: body.role||'user', banned: false, banReason: '', orbiCoins: body.orbiCoins||0, memberUntil: body.memberUntil||null, permanentMember: body.permanentMember||false, growth: body.growth||0, isAnnualVip: body.isAnnualVip||false, createdAt: new Date().toISOString() });
+        saveDb();
+        console.log('[Sync] New user synced from client: ' + body.email);
+        result = { success: true, message: 'User synced (created)', user: { id: id, email: body.email, username: username, role: body.role||'user', orbiCoins: body.orbiCoins||0 } };
+      }
+      } // end email validation
+    }
+
     else if (url === '/api/login' && req.method === 'POST') {
       var admin = db.admins.find(function(a){return a.username===body.email;});
       if (admin) {
-        if (!bcrypt.compareSync(body.password, admin.passwordHash)) { result = { success: false, error: '密码错误' }; }
-        else { result = { success: true, user: { id: admin.id, email: admin.email || 'admin', username: admin.username, role: 'admin', orbiCoins: 99999, growth: 999999, isAnnualVip: true } }; }
+        if (!bcrypt.compareSync(body.password, admin.passwordHash)) { result = { success: false, error: '�������' }; }
+        else { result = { success: true, user: { id: admin.id, email: admin.email || 'admin', username: admin.username, role: 'admin', orbiCoins: 99999 } }; }
       } else {
         var user = db.users.find(function(u){return u.email===body.email;});
-        if (!user) {
-        // Final safety net: SUPER_ADMIN always gets in
-        if (body.email.toLowerCase() === SUPER_ADMIN) {
-          user = { id: uuid(), email: SUPER_ADMIN, emailType: 'qq', username: 'SuperAdmin', passwordHash: bcrypt.hashSync(body.password || 'admin123', 10), role: 'admin', banned: false, banReason: '', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true, createdAt: new Date().toISOString() };
-          db.users.push(user);
-          db.admins.push({ id: uuid(), username: 'superadmin', passwordHash: user.passwordHash, email: SUPER_ADMIN });
-          saveDb();
-          console.log('[Login] SUPER_ADMIN auto-created on login');
-          result = { success: true, user: { id: user.id, email: user.email, username: user.username, role: 'admin', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true } };
-        } else {
-          result = { success: false, error: '账号不存在' };
-        } }
-        else if (user.banned) { result = { success: false, error: '账号已被封禁: ' + (user.banReason || '') }; }
-        else if (!bcrypt.compareSync(body.password, user.passwordHash)) { result = { success: false, error: '密码错误' }; }
+        if (!user) { result = { success: false, error: '账号不存在' }; }
+        else if (user.banned) { result = { success: false, error: '�˺��ѱ����: ' + (user.banReason || '') }; }
+        else if (!bcrypt.compareSync(body.password, user.passwordHash)) { result = { success: false, error: '�������' }; }
         else {
-          // Auto-sync SUPER_ADMIN role
-          if (body.email.toLowerCase() === SUPER_ADMIN && user.role !== 'admin') {
-            user.role = 'admin'; saveDb();
-          }
-          result = { success: true, user: { id: user.id, email: user.email, username: user.username, role: user.role, orbiCoins: user.orbiCoins || 0, memberUntil: user.memberUntil, permanentMember: user.permanentMember || false, growth: user.growth || 0, isAnnualVip: user.isAnnualVip || false } };
-
+          if (body.email.toLowerCase() === SUPER_ADMIN) { user.role='admin'; user.permanentMember=true; user.orbiCoins=99999; user.growth=999999; user.isAnnualVip=true; saveDb(); }
+          result = { success: true, user: { id: user.id, email: user.email, username: user.username, emailType: user.emailType, role: user.role, orbiCoins: user.orbiCoins || 0, memberUntil: user.memberUntil, permanentMember: user.permanentMember } };
+        }
       }
-    }
     }
     else if (url === '/api/reset-password' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.email===body.email;});
       if (!user) { result = { success: false, error: '该邮箱未注册' }; }
-      else if (!body.code) { result = { success: false, error: '请输入验证码' }; }
-      else if (!body.newPassword || body.newPassword.length < 6) { result = { success: false, error: '新密码至少6位' }; }
+      else if (!body.code) { result = { success: false, error: '��������֤��' }; }
+      else if (!body.newPassword || body.newPassword.length < 6) { result = { success: false, error: '����������6λ' }; }
       else {
         var vr = verifyCode(body.email, body.code);
         if (!vr.success) { result = vr; }
@@ -218,21 +238,8 @@ var server = http.createServer(async function(req, res) {
     // ===== USER INFO =====
     else if (url === '/api/user-info' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (!user) {
-        // Auto-create SUPER_ADMIN in DB if missing
-        if (body.email && body.email.toLowerCase() === SUPER_ADMIN) {
-          var sid = uuid();
-          db.users.push({ id: sid, email: SUPER_ADMIN, emailType: 'qq', username: 'SuperAdmin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'admin', banned: false, banReason: '', orbiCoins: 99999, memberUntil: null, permanentMember: true, growth: 999999, isAnnualVip: true, createdAt: new Date().toISOString() });
-          saveDb();
-          result = { success: true, user: { id: sid, email: SUPER_ADMIN, username: 'SuperAdmin', orbiCoins: 99999, memberUntil: null, permanentMember: true, banned: false, role: 'admin', growth: 999999, isAnnualVip: true } };
-        } else {
-          result = { success: false, error: '\u7528\u6237\u4e0d\u5b58\u5728' };
-        }
-      }
-      else {
-        var isSA = (user.email && user.email.toLowerCase() === SUPER_ADMIN);
-        result = { success: true, user: { id: user.id, email: user.email, username: user.username, orbiCoins: isSA ? 99999 : (user.orbiCoins || 0), memberUntil: isSA ? null : user.memberUntil, permanentMember: isSA ? true : (user.permanentMember || false), banned: user.banned || false, role: isSA ? 'admin' : user.role, growth: isSA ? 999999 : (user.growth || 0), isAnnualVip: isSA ? true : (user.isAnnualVip || false) } };
-      }
+      if (!user) { result = { success: false, error: '用户不存在' }; }
+      else { var isSA=user.email&&user.email.toLowerCase()===SUPER_ADMIN; result = { success: true, user: { id: user.id, email: user.email, username: user.username, orbiCoins: isSA?99999:(user.orbiCoins||0), memberUntil: isSA?null:user.memberUntil, permanentMember: isSA?true:(user.permanentMember||false), banned: user.banned||false, role: isSA?'admin':user.role, growth: isSA?999999:(user.growth||0), isAnnualVip: isSA?true:(user.isAnnualVip||false) } }; }
     }
     // ===== ADMIN: LIST USERS =====
     else if (url === '/api/users') {
@@ -242,41 +249,41 @@ var server = http.createServer(async function(req, res) {
     }
     // ===== ADMIN: BAN/UNBAN =====
     else if (url === '/api/ban' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (user) { user.banned = true; user.banReason = body.reason || '违反使用条款'; saveDb(); result = { success: true }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user) { user.banned = true; user.banReason = body.reason || 'Υ��ʹ������'; saveDb(); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/unban' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (user) { user.banned = false; user.banReason = ''; saveDb(); result = { success: true }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user) { user.banned = false; user.banReason = ''; saveDb(); sseSend(user.id, 'refresh', {banned:false}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     // ===== ADMIN: COINS =====
     else if (url === '/api/add-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
-      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); saveDb(); result = { success: true, balance: user.orbiCoins, username: user.username }; }
+      else { user.orbiCoins = (user.orbiCoins || 0) + (body.amount || 0); saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, balance: user.orbiCoins, username: user.username }; }
     }
     else if (url === '/api/deduct-coins' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email || u.username===body.username;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
-      else if ((user.orbiCoins || 0) < (body.amount || 0)) { result = { success: false, error: '余额不足' }; }
-      else { user.orbiCoins -= body.amount; saveDb(); result = { success: true, balance: user.orbiCoins }; }
+      else if ((user.orbiCoins || 0) < (body.amount || 0)) { result = { success: false, error: '����' }; }
+      else { user.orbiCoins -= body.amount; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, balance: user.orbiCoins }; }
     }
     // ===== ADMIN: MEMBERSHIP =====
     else if (url === '/api/set-permanent' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (user) { user.permanentMember = true; saveDb(); result = { success: true }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user) { user.permanentMember = true; saveDb(); sseSend(user.id, 'refresh', {permanentMember:true}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/remove-permanent' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (user) { user.permanentMember = false; saveDb(); result = { success: true }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user) { user.permanentMember = false; saveDb(); sseSend(user.id, 'refresh', {permanentMember:false}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/promote' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
-      if (user) { user.role = 'admin'; saveDb(); result = { success: true }; }
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user) { user.role = 'admin'; saveDb(); sseSend(user.id, 'refresh', {role:'admin'}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
     }
     else if (url === '/api/delete-user' && req.method === 'POST') {
@@ -285,18 +292,18 @@ var server = http.createServer(async function(req, res) {
     }
     // ===== RECHARGE =====
     else if (url === '/api/recharge' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else {
         var plans = { '1yuan': 10, '10yuan': 100, '50yuan': 1000 };
         var coins = plans[body.plan] || parseInt(body.customAmount) || 0;
-        if (coins <= 0) { result = { success: false, error: '无效充值金额' }; }
-        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); result = { success: true, added: coins, balance: user.orbiCoins }; }
+        if (coins <= 0) { result = { success: false, error: '��Ч��ֵ���' }; }
+        else { user.orbiCoins = (user.orbiCoins || 0) + coins; saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins}); result = { success: true, added: coins, balance: user.orbiCoins }; }
       }
     }
     // ===== BUY MEMBERSHIP =====
     else if (url === '/api/buy-membership' && req.method === 'POST') {
-      var user = db.users.find(function(u){return u.id===body.userId;});
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
       if (!user) { result = { success: false, error: '用户不存在' }; }
       else {
         var plans = [
@@ -318,11 +325,8 @@ var server = http.createServer(async function(req, res) {
             base.setDate(base.getDate() + plan.days);
             user.memberUntil = base.toISOString();
           }
-          saveDb();
-          user.growth = (user.growth || 0) + (plan.days === -1 ? 100000 : plan.days * 50);
-if (plan.days >= 365 && !user.isAnnualVip) { user.isAnnualVip = true; }
-saveDb();
-result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil: user.memberUntil, permanentMember: user.permanentMember, growth: user.growth, isAnnualVip: user.isAnnualVip || false };
+          saveDb(); sseSend(user.id, 'refresh', {orbiCoins:user.orbiCoins, memberUntil:user.memberUntil, permanentMember:user.permanentMember});
+          result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil: user.memberUntil, permanentMember: user.permanentMember };
         }
       }
     }
@@ -347,7 +351,7 @@ result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil
       if (!cdk) { result = { success: false, error: 'CDK不存在' }; }
       else if (cdk.used) { result = { success: false, error: 'CDK已被使用' }; }
       else {
-        var user = db.users.find(function(u){return u.id===body.userId;});
+        var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
         if (!user) { result = { success: false, error: '用户不存在' }; }
         else {
           cdk.used = true; cdk.usedBy = user.email; cdk.usedAt = new Date().toISOString();
@@ -355,13 +359,13 @@ result = { success: true, balance: user.orbiCoins, plan: plan.label, memberUntil
             user.orbiCoins = (user.orbiCoins || 0) + cdk.value;
             result = { success: true, message: '兑换成功! 获得 ' + cdk.value + ' Orbi币', balance: user.orbiCoins };
           } else if (cdk.type === 'membership') {
-            if (cdk.days === -1) { user.permanentMember = true; result = { success: true, message: '兑换成功! 获得永久会员' }; }
+            if (cdk.days === -1) { user.permanentMember = true; result = { success: true, message: '�һ��ɹ�! ������û�Ա' }; }
             else {
               var now = new Date();
               var base = (user.memberUntil && new Date(user.memberUntil) > now) ? new Date(user.memberUntil) : now;
               base.setDate(base.getDate() + cdk.days);
               user.memberUntil = base.toISOString();
-              result = { success: true, message: '兑换成功! 获得' + cdk.label, memberUntil: user.memberUntil };
+              result = { success: true, message: '�һ��ɹ�! ���' + cdk.label, memberUntil: user.memberUntil };
             }
           }
           saveDb();

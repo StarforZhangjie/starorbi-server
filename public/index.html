@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="StarOrbi - 新一代赛博朋克风格点歌系统，支持网易云/QQ音乐/酷狗/B站/抖音多平台点歌点播">
+<meta name="keywords" content="StarOrbi,点歌系统,赛博朋克,KTV,点歌,音乐播放器">
+<meta property="og:title" content="StarOrbi v4.0.0 - 星际轨道点歌系统">
+<meta property="og:description" content="赛博朋克风格 · 多平台音乐点播 · 桌面歌词 · 抖音监听">
+<meta property="og:type" content="website">
+<title>StarOrbi - 星际轨道点歌系统</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg: #06080f;
+  --bg-card: rgba(12, 14, 22, 0.85);
+  --border: rgba(88, 166, 255, 0.1);
+  --accent: #58a6ff;
+  --accent2: #bc8cff;
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --text3: #484f58;
+  --neon-green: #00ff88;
+  --neon-red: #ff2244;
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Stars canvas */
+#starfield {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Nebula glows */
+.nebula {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+.nebula-1 { width: 600px; height: 600px; background: #58a6ff; top: -200px; left: -100px; }
+.nebula-2 { width: 500px; height: 500px; background: #bc8cff; top: 40%; right: -150px; }
+.nebula-3 { width: 400px; height: 400px; background: #ff6b9d; bottom: -100px; left: 30%; }
+
+/* Shooting stars */
+.shooting-star {
+  position: fixed;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
+  border-radius: 50%;
+  animation: shoot 3s linear infinite;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.shooting-star:nth-child(1) { top: 5%; left: 20%; animation-delay: 0s; }
+.shooting-star:nth-child(2) { top: 15%; left: 60%; animation-delay: 1.2s; }
+.shooting-star:nth-child(3) { top: 8%; left: 80%; animation-delay: 2.5s; }
+@keyframes shoot {
+  0% { transform: translate(0,0) rotate(-25deg); opacity: 0; }
+  5% { opacity: 1; }
+  15% { transform: translate(-300px, 300px) rotate(-25deg); opacity: 0; }
+  100% { transform: translate(-300px, 300px) rotate(-25deg); opacity: 0; }
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Header */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(6, 8, 15, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+}
+.logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
+}
+.logo-version {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  background: rgba(88, 166, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.header-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.header-links a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.header-links a:hover { color: var(--accent); }
+
+/* Hero */
+.hero {
+  padding: 160px 0 100px;
+  text-align: center;
+  position: relative;
+}
+.hero-badge {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 6px 16px;
+  background: rgba(88, 166, 255, 0.06);
+  border: 1px solid rgba(88, 166, 255, 0.15);
+  border-radius: 20px;
+  color: var(--accent);
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+.hero h1 {
+  font-size: 56px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #58a6ff 0%, #bc8cff 50%, #58a6ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 4s ease infinite;
+  letter-spacing: -1px;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+.hero-subtitle {
+  font-size: 20px;
+  color: var(--text2);
+  font-weight: 400;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  box-shadow: 0 0 30px rgba(88, 166, 255, 0.25);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(88, 166, 255, 0.4);
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(88, 166, 255, 0.2);
+  color: var(--accent);
+}
+.btn-outline:hover {
+  border-color: var(--accent);
+  background: rgba(88, 166, 255, 0.06);
+}
+
+/* Features */
+.section {
+  padding: 80px 0;
+}
+.section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.section-desc {
+  font-size: 16px;
+  color: var(--text2);
+  max-width: 600px;
+  margin-bottom: 48px;
+}
+
+/* Feature grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.3s;
+}
+.feature-card:hover {
+  border-color: rgba(88, 166, 255, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+.feature-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 18px;
+}
+.feature-icon.f1 { background: rgba(88, 166, 255, 0.1); color: var(--accent); }
+.feature-icon.f2 { background: rgba(188, 140, 255, 0.1); color: var(--accent2); }
+.feature-icon.f3 { background: rgba(0, 255, 136, 0.1); color: var(--neon-green); }
+.feature-icon.f4 { background: rgba(255, 107, 157, 0.1); color: #ff6b9d; }
+.feature-icon.f5 { background: rgba(88, 166, 255, 0.1); color: #79c0ff; }
+.feature-icon.f6 { background: rgba(188, 140, 255, 0.1); color: #d2a8ff; }
+.feature-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.feature-card p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+/* Screenshots */
+.screenshot-area {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.screenshot-area::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+}
+.screenshot-placeholder {
+  background: rgba(88, 166, 255, 0.02);
+  border: 1px dashed rgba(88, 166, 255, 0.1);
+  border-radius: var(--radius);
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  font-size: 15px;
+  flex-direction: column;
+  gap: 8px;
+}
+.screenshot-placeholder .placeholder-icon {
+  font-size: 48px;
+  opacity: 0.3;
+}
+
+/* Download */
+.download-section {
+  text-align: center;
+  padding: 100px 0;
+}
+.download-card {
+  display: inline-block;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 60px;
+  backdrop-filter: blur(16px);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.download-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+}
+.download-version {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.download-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.download-size {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 24px;
+}
+.download-note {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 16px;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+}
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+footer a:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 34px; }
+  .hero-subtitle { font-size: 16px; }
+  .section-title { font-size: 26px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .header-links { display: none; }
+  .download-card { padding: 28px 32px; }
+  .hero { padding: 120px 0 60px; }
+}
+
+/* Animations */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.8s ease forwards;
+}
+.fade-in-delay-1 { animation-delay: 0.2s; }
+.fade-in-delay-2 { animation-delay: 0.4s; }
+.fade-in-delay-3 { animation-delay: 0.6s; }
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Background effects -->
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
+<div class="shooting-star"></div>
+<div class="shooting-star"></div>
+<div class="shooting-star"></div>
+<canvas id="starfield"></canvas>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">✦</div>
+      <span class="logo-text">StarOrbi</span>
+      <span class="logo-version">v4.0.0</span>
+    </a>
+    <div class="header-links">
+      <a href="#features">功能</a>
+      <a href="#screenshots">界面</a>
+      <a href="#download">下载</a>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero container fade-in">
+  <div class="hero-badge">🚀 全新 v4.0.0 赛博朋克主题</div>
+  <h1>星际轨道<br>点歌系统</h1>
+  <p class="hero-subtitle fade-in fade-in-delay-1">
+    新一代赛博朋克风格桌面点歌软件，支持多平台音乐搜索播放、抖音直播监听点歌、B站视频点播、桌面悬浮歌词
+  </p>
+  <div class="hero-buttons fade-in fade-in-delay-2">
+    <a href="#download" class="btn btn-primary">⬇ 立即下载</a>
+    <a href="#features" class="btn btn-outline">了解更多</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="section container">
+  <div class="section-label">核心功能</div>
+  <h2 class="section-title">打造极致点歌体验</h2>
+  <p class="section-desc">从赛博朋克视觉到多平台音乐聚合，每一个细节都为KTV、直播间、聚会场景精心设计</p>
+  
+  <div class="feature-grid">
+    <div class="feature-card fade-in">
+      <div class="feature-icon f1">🎨</div>
+      <h3>赛博朋克 UI</h3>
+      <p>深色主题 #06080f 背景，毛玻璃顶栏与播放器，蓝紫渐变强调色，银河星空背景动画，流星与星云光晕效果</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-1">
+      <div class="feature-icon f2">🎵</div>
+      <h3>多平台音乐</h3>
+      <p>支持网易云音乐、QQ音乐、酷狗音乐三大平台搜索与播放，绑定平台账号即可播放VIP歌曲</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-2">
+      <div class="feature-icon f3">🎤</div>
+      <h3>智能歌词</h3>
+      <p>多平台歌词获取与自动降级，LRC格式解析与同步滚动高亮，支持桌面悬浮歌词窗口始终置顶</p>
+    </div>
+    <div class="feature-card fade-in">
+      <div class="feature-icon f4">📺</div>
+      <h3>B站视频点播</h3>
+      <p>支持BV码添加视频到播放队列，独立视频播放窗口，适合直播间或聚会场景的视频点播需求</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-1">
+      <div class="feature-icon f5">🎬</div>
+      <h3>抖音直播监听</h3>
+      <p>实时监听抖音直播间弹幕，自动识别点歌和BV码点播请求，无需手动操作，直播间互动更流畅</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-2">
+      <div class="feature-icon f6">👑</div>
+      <h3>会员系统</h3>
+      <p>新用户注册赠送3天ORBI超级会员，支持永久会员炫彩标识，云端同步会员状态，多设备实时生效</p>
+    </div>
+  </div>
+</section>
+
+<!-- Screenshots -->
+<section id="screenshots" class="section container">
+  <div class="section-label">软件界面</div>
+  <h2 class="section-title">赛博朋克视觉盛宴</h2>
+  <p class="section-desc">每一个像素都为沉浸式体验而设计</p>
+  
+  <div class="screenshot-area fade-in">
+    <div class="screenshot-placeholder">
+      <div class="placeholder-icon">🖥️</div>
+      <div>软件界面截图将在后续更新中展示</div>
+      <div style="font-size:12px;margin-top:4px">暗色主题 · 银河星空 · 渐变光晕</div>
+    </div>
+  </div>
+</section>
+
+<!-- Download -->
+<section id="download" class="download-section container fade-in">
+  <div class="section-label">获取 StarOrbi</div>
+  <h2 class="section-title" style="margin-bottom:40px">下载最新版本</h2>
+  
+  <div class="download-card">
+    <div class="download-version">最新版本</div>
+    <div class="download-name">StarOrbi v4.0.0</div>
+    <div class="download-size">Windows · 约 115MB</div>
+    <a id="download-btn" href="https://github.com/StarforZhangjie/StarOrbi/releases/latest/download/StarOrbi-v4.0.0.zip" class="btn btn-primary" style="display:inline-flex">
+      ⬇ 下载 Windows 版
+    </a>
+    <div class="download-note">
+      解压后运行 <span style="font-family:'Share Tech Mono',monospace;color:var(--accent)">StarOrbi.exe</span> 即可使用<br>
+      新用户注册赠送 <span style="color:var(--accent2)">3天ORBI超级会员</span>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;font-size:13px;color:var(--text3)">
+    如遇下载问题，也可访问 <a href="https://starorbiserver.onrender.com" target="_blank">备用服务器</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="container">
+  <p>© 2026 <a href="#">StarOrbi</a> · 星际轨道点歌系统 · Powered by Electron</p>
+  <p style="margin-top:8px">网易云音乐 | QQ音乐 | 酷狗音乐 | 哔哩哔哩 | 抖音</p>
+</footer>
+
+<!-- Stars animation -->
+<script>
+(function() {
+  var canvas = document.getElementById('starfield');
+  var ctx = canvas.getContext('2d');
+  var stars = [];
+  var w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (var i = 0; i < 200; i++) {
+    stars.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.5 + 0.5,
+      twinkle: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.02 + 0.005
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      s.twinkle += s.speed;
+      var alpha = 0.3 + Math.sin(s.twinkle) * 0.4;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+</body>
+</html>
