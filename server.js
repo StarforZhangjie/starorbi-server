@@ -1,6 +1,6 @@
 ﻿const http=require("http"),fs=require("fs"),path=require("path"),bcrypt=require("bcryptjs"),{v4:uuid}=require("uuid");
 const PORT=process.env.PORT||3000,DB_FILE=path.join(__dirname,"data","database.json");
-let db={users:[],cdks:[],admins:[],config:{version:"4.0.0"}};
+let db={users:[],cdks:[],admins:[],config:{version:"4.0.2"}};
 function loadDb(){try{if(fs.existsSync(DB_FILE))db=JSON.parse(fs.readFileSync(DB_FILE,"utf8"))}catch(e){db={users:[],cdks:[],admins:[],config:{}}}if(!db.users)db.users=[];if(!db.cdks)db.cdks=[];if(!db.admins)db.admins=[];}
 function saveDb(){try{var d=path.dirname(DB_FILE);if(!fs.existsSync(d))fs.mkdirSync(d,{recursive:true});fs.writeFileSync(DB_FILE,JSON.stringify(db,null,2),"utf8")}catch(e){console.log("Save err:",e.message)}}
 loadDb();
@@ -16,8 +16,8 @@ http.createServer(function(req,res){
   req.on("end",function(){
     try{var p={};if(body)try{p=JSON.parse(body)}catch(e){}}
     catch(e){p={}}
-    var r={error:"Unknown endpoint"};
-    if(url==="/api/health")r={status:"ok",version:"4.0.0",users:db.users.length,time:new Date().toISOString()};
+    if(url==="/"){r={status:"ok",version:"4.0.2",users:db.users.length,time:new Date().toISOString()}}else var r={error:"Unknown endpoint"};
+    if(url==="/api/health")r={status:"ok",version:"4.0.2",users:db.users.length,time:new Date().toISOString()};
     else if(url==="/api/users-list"){var users=db.users.map(function(u){return{id:u.id,email:u.email,username:u.username,role:u.role,orbiCoins:u.orbiCoins||0,memberUntil:u.memberUntil,permanentMember:u.permanentMember||false,growth:u.growth||0,isAnnualVip:u.isAnnualVip||false,banned:u.banned,createdAt:u.createdAt}});r={success:true,users:users};}
     else if(url==="/api/sync-user"&&req.method==="POST"){
       if(!p.email||p.email.indexOf("@")<0){r={success:false,error:"Invalid email"}}
