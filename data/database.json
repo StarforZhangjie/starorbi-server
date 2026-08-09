@@ -1,17 +1,18 @@
 ﻿{
     "users":  [
                   {
-                      "id":  "30cf1d72-73fe-44d5-a0d9-1dc9e3b2e0bf",
+                      "id":  "050194d8-b033-405b-88c8-4a7a2be9b8b2",
                       "email":  "1204892152@qq.com",
-                      "emailType":  "QQ??",
-                      "username":  "admin",
-                      "passwordHash":  "$2a$10$uV1Z1yj4.z2JAHKiBUS9V.0VKjdcYj/bWPENcMTfnnVv9ruzzmdjG",
+                      "emailType":  "QQ邮箱",
+                      "username":  "星星",
+                      "passwordHash":  "$2a$10$yZFdp5TGY9LTex.bGiucKO23g0UnXczgcRpIv6AMzlLT6xX1lRbgi",
                       "role":  "admin",
                       "banned":  false,
                       "banReason":  "",
                       "orbiCoins":  99999,
+                      "memberUntil":  "2026-09-15T05:06:21.415Z",
                       "permanentMember":  true,
-                      "createdAt":  "2026-08-04T10:18:45.520Z"
+                      "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:06:21.415Z"
                   }
               ],
     "songQueue":  [
@@ -21,10 +22,674 @@
 
                    ],
     "admins":  [
-
+                   {
+                       "id":  "8aa72d33-44f5-4fa2-a631-e1faf4285212",
+                       "username":  "superadmin",
+                       "passwordHash":  "$2a$10$qQFTAF1QU31bjB/9JkKT2ux/7Nq.3RqHcgAzMYe/K6e8cCds/y8v2",
+                       "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.024Z"
+                   }
                ],
     "cdks":  [
-
+                 {
+                     "code":  "SB-486E-DR82-23U2-NY6Y",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-2V94-N84E-BUVC-KNX2",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-E2SC-VVMW-XS5C-7KNE",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-7JFV-3ADV-5C7C-2UXZ",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-HM27-8QQJ-J3GY-42Z7",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-43ZD-ZH7K-7KBF-GV2V",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-LJJ6-SKWC-C3FZ-V5H9",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-Z8KX-2HPS-56JN-9HVP",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-8VJY-MS9N-573Z-3HVL",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-NANP-D9SN-NSJV-FHVC",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-TFJ8-EBRW-LA3S-TCZU",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-MGQX-MBGN-5PAF-UHDR",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-LHBE-P22X-52R3-39E7",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-62V9-RCPY-ZZBW-4CHD",
+                     "type":  "coins",
+                     "value":  10,
+                     "label":  "10 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-5ACN-8ZWB-GVBH-37PH",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-P4LQ-H8S3-RQ94-DYCD",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-5E68-CGYU-5ATN-SAVP",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-GPQX-F94B-YY5H-QZP4",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-92ET-3WXZ-Y247-DXG8",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-KGK9-3PMT-DYW4-QNY5",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-P3WG-6KZD-WQK8-DA6Y",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-2GPE-QWWR-3E5K-AW8K",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-AEH3-SQX5-5UBN-EDQQ",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-A866-BQT4-4V7J-Z4Q6",
+                     "type":  "coins",
+                     "value":  100,
+                     "label":  "100 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-6GHG-3TC2-SZQR-SWHW",
+                     "type":  "coins",
+                     "value":  1000,
+                     "label":  "1000 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-5FEA-KLMF-S3DA-AVP9",
+                     "type":  "coins",
+                     "value":  1000,
+                     "label":  "1000 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-HQQX-E95T-FY23-L7PY",
+                     "type":  "coins",
+                     "value":  1000,
+                     "label":  "1000 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-4NDM-UNKF-4MDW-MRS9",
+                     "type":  "coins",
+                     "value":  1000,
+                     "label":  "1000 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-6F7E-7N4G-ZQ75-HKFW",
+                     "type":  "coins",
+                     "value":  1000,
+                     "label":  "1000 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-NHV9-MUPM-37GA-HVT8",
+                     "type":  "coins",
+                     "value":  19821220,
+                     "label":  "19821220 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-HPLA-XKM2-4SZC-JWTF",
+                     "type":  "coins",
+                     "value":  19821220,
+                     "label":  "19821220 Orbi币",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-XXLM-ZX5C-VARK-NEM5",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-M6JD-VUMU-FCX3-BNPU",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-7KDD-5VCN-YLWK-S6ME",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-2FDR-WYXR-K3V2-EPM4",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-WG8L-4B2N-RRLL-JEBU",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-LR3P-2VRU-VH8S-NJ4L",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-KB2Y-E2K6-EG5S-CZVQ",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-A4LP-S6GU-VU9F-ZCWD",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-W644-ZC6X-WDR6-C9YT",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-U9X7-XY64-TU7F-KMCC",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "1天会员",
+                     "days":  1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-AYMV-6QP2-S73H-9FD2",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-YLWA-2BJU-CWVS-94RG",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-U7UE-ZK9D-4QCP-YN6P",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-RBRF-XQAK-YXQ4-P39N",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-NPYZ-WJK8-MDHA-Q76W",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-5BV4-SPBT-RXYR-BAPM",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-JSZT-SY28-BCQC-53WF",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-FDG4-GQ86-WD92-M7FZ",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-T4G9-KLJT-LXDN-Z6EH",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-NXYB-BANU-W6P2-G78J",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "7天会员",
+                     "days":  7,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-RJKN-A2S2-M5E8-RDYS",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "30天会员",
+                     "days":  30,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-AT6G-RX4Z-DTGX-MH65",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "30天会员",
+                     "days":  30,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-ZHPF-AQG-Z8CB-QMQ8",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "30天会员",
+                     "days":  30,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-2BZE-8NXM-Y6NJ-7BUP",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "30天会员",
+                     "days":  30,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-RUZ8-9JPU-ZKPF-EMGF",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "30天会员",
+                     "days":  30,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-56AW-RLBS-MZLC-F46S",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "永久会员",
+                     "days":  -1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-7WLA-FWU7-EZEM-FFCU",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "永久会员",
+                     "days":  -1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:05:51.025Z"
+                 },
+                 {
+                     "code":  "SB-FDRZ-ZSA4-X986-2ZAK",
+                     "type":  "coins",
+                     "value":  19821220,
+                     "label":  "19821220 Coins",
+                     "days":  0,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:06:54.524Z"
+                 },
+                 {
+                     "code":  "SB-QBW3-TL8F-3GLY-3KYM",
+                     "type":  "membership",
+                     "value":  10,
+                     "label":  "Permanent",
+                     "days":  -1,
+                     "used":  false,
+                     "usedBy":  null,
+                     "usedAt":  null,
+                     "growth": 999999,"isAnnualVip": true,"createdAt":  "2026-08-09T05:07:20.942Z"
+                 }
              ],
     "config":  {
                    "version":  "4.0.0"
