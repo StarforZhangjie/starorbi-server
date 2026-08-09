@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'data', 'database.json');
 const SUPER_ADMIN = '1204892152@qq.com';
 const API_KEY = 'starorbi-admin-2024';
-const VERSION = '4.0.0'; // Build: 20260809-163422
+const VERSION = '4.0.0'; // Deploy: 20260809-163837
 
 let db = { users: [], cdks: [], admins: [], config: { version: VERSION, smtpHost: 'smtp.qq.com', smtpPort: 465, smtpUser: '', smtpPass: '', smtpFrom: '' } };
 let verificationCodes = new Map();
