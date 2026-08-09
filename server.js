@@ -106,7 +106,7 @@ var server = http.createServer(async function(req, res) {
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
   var url = req.url.split('?')[0];
-  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config','/api/users-list'];
+  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/demote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config','/api/users-list'];
   if (ADMIN_ENDPOINTS.indexOf(url) >= 0 && req.headers['x-api-key'] !== API_KEY) {
     res.writeHead(403);
     res.end(JSON.stringify({error: 'Invalid API key'}));
@@ -272,8 +272,13 @@ var server = http.createServer(async function(req, res) {
     }
     else if (url === '/api/promote' && req.method === 'POST') {
       var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
-      if (user) { user.role = 'admin'; saveDb(); sseSend(user.id, 'refresh', {role:'admin'}); result = { success: true }; }
+      if (user) { user.role = 'admin'; user.growth = 999999; user.permanentMember = true; saveDb(); sseSend(user.id, 'refresh', {role:'admin'}); result = { success: true }; }
       else { result = { success: false, error: '用户不存在' }; }
+    }
+    else if (url === '/api/demote' && req.method === 'POST') {
+      var user = db.users.find(function(u){return u.id===body.userId || u.email===body.email;});
+      if (user && user.email !== SUPER_ADMIN) { user.role = 'user'; saveDb(); sseSend(user.id, 'refresh', {role:'user'}); result = { success: true }; }
+      else { result = { success: false, error: user ? '不能降级超级管理员' : '用户不存在' }; }
     }
     else if (url === '/api/delete-user' && req.method === 'POST') {
       db.users = db.users.filter(function(u){return u.id!==body.userId;});
