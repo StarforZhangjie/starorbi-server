@@ -7,5 +7,5 @@
     "nodemailer": "^9.0.3",
     "uuid": "^9.0.0"
   },
-  "description": "StarOrbi Server v4 - sync-user, users-list, demote, SSE, Chinese"
+  "description": "StarOrbi Server - network user management, email fallback, SSE, Chinese UI"
 }
