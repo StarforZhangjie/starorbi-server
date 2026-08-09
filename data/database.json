@@ -1,0 +1,270 @@
+{
+  "users": [
+    {
+      "id": "a1",
+      "email": "admin@qq.com",
+      "username": "Admin",
+      "passwordHash": "",
+      "role": "user",
+      "banned": false,
+      "orbiCoins": 119399,
+      "memberUntil": "2026-10-08T11:17:54.462Z",
+      "permanentMember": true,
+      "growth": 20600,
+      "isAnnualVip": false,
+      "createdAt": "2026-08-09T11:17:54.362Z"
+    },
+    {
+      "id": "cace5b73-c5d2-4e45-bb56-1442f432f67c",
+      "email": "test123@qq.com",
+      "username": "Test123",
+      "passwordHash": "$2b$10$.XUi7rnKBajmNMK7ApUqpueYwZ6NOEfdKz8wAZCVoywrOJmX7q0nG",
+      "role": "user",
+      "banned": false,
+      "orbiCoins": 50,
+      "memberUntil": "2026-08-12T11:17:54.450Z",
+      "permanentMember": false,
+      "growth": 0,
+      "isAnnualVip": false,
+      "createdAt": "2026-08-09T11:17:54.450Z"
+    },
+    {
+      "id": "f6b8a4be-1687-40c3-ac40-a7eac0b3f5d9",
+      "email": "1204892152@qq.com",
+      "username": "StarAdmin",
+      "passwordHash": "$2b$10$jYPNKdQNFdGYPVaZK7yiCOJmMgdsH98ysLtaEU/ShgSIBsnzqBso2",
+      "role": "admin",
+      "banned": false,
+      "orbiCoins": 1050,
+      "memberUntil": null,
+      "permanentMember": true,
+      "growth": 1000999,
+      "isAnnualVip": true,
+      "createdAt": "2026-08-09T11:28:49.131Z"
+    },
+    {
+      "id": "m01",
+      "email": "member@qq.com",
+      "username": "Member",
+      "passwordHash": "",
+      "role": "user",
+      "banned": false,
+      "orbiCoins": 4700,
+      "memberUntil": "2026-09-08T11:29:13.247Z",
+      "permanentMember": true,
+      "growth": 999999,
+      "isAnnualVip": false,
+      "createdAt": "2026-08-09T11:29:13.236Z",
+      "banReason": "违反使用条款"
+    },
+    {
+      "id": "pa01",
+      "email": "pub_admin@qq.com",
+      "username": "PubAdmin",
+      "passwordHash": "",
+      "role": "user",
+      "banned": false,
+      "orbiCoins": 104699,
+      "memberUntil": "2026-09-08T11:42:45.091Z",
+      "permanentMember": false,
+      "growth": 5300,
+      "isAnnualVip": false,
+      "createdAt": "2026-08-09T11:42:45.077Z"
+    },
+    {
+      "id": "t1",
+      "email": "t1@qq.com",
+      "username": "T1",
+      "passwordHash": "",
+      "role": "user",
+      "banned": false,
+      "orbiCoins": 0,
+      "memberUntil": null,
+      "permanentMember": false,
+      "growth": 0,
+      "isAnnualVip": false,
+      "createdAt": "2026-08-09T11:43:42.671Z"
+    },
+    {
+      "id": "lv",
+      "email": "live_test@q.com",
+      "username": "Live",
+      "passwordHash": "",
+      "role": "user",
+      "banned": false,
+      "orbiCoins": 0,
+      "memberUntil": null,
+      "permanentMember": false,
+      "growth": 0,
+      "isAnnualVip": false,
+      "createdAt": "2026-08-09T11:48:52.945Z"
+    }
+  ],
+  "cdks": [
+    {
+      "code": "SB-HLC9-67S2-V8A5-GGLU",
+      "type": "coins",
+      "value": 100,
+      "label": "100 Orbi?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:17:54.468Z"
+    },
+    {
+      "code": "SB-5QM7-MGBZ-49UG-5ZBH",
+      "type": "coins",
+      "value": 100,
+      "label": "100 Orbi?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:17:54.468Z"
+    },
+    {
+      "code": "SB-KPFV-6VUR-U3UM-5GY6",
+      "type": "coins",
+      "value": 100,
+      "label": "100 Orbi?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:17:54.468Z"
+    },
+    {
+      "code": "SB-97GZ-B2BZ-2YSC-BTNA",
+      "type": "coins",
+      "value": 100,
+      "label": "100 Orbi?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:17:54.470Z"
+    },
+    {
+      "code": "SB-GS7Q-VK7L-UQ3B-KX49",
+      "type": "coins",
+      "value": 100,
+      "label": "100 Orbi?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:17:54.470Z"
+    },
+    {
+      "code": "SB-5VJQ-TN8R-3LU5-YJQA",
+      "type": "coins",
+      "value": 100,
+      "label": "100 Orbi?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:17:54.470Z"
+    },
+    {
+      "code": "SB-PH66-544F-A6JJ-UV2J",
+      "type": "coins",
+      "value": 100,
+      "label": "100?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:28:49.150Z"
+    },
+    {
+      "code": "SB-QBQ6-BUCJ-M984-4BTN",
+      "type": "coins",
+      "value": 100,
+      "label": "100?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:28:49.150Z"
+    },
+    {
+      "code": "SB-BX36-295K-MH8H-8PLD",
+      "type": "coins",
+      "value": 100,
+      "label": "100?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:28:49.150Z"
+    },
+    {
+      "code": "SB-UQ5V-QNJK-M3P7-RENP",
+      "type": "coins",
+      "value": 100,
+      "label": "100?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:29:13.267Z"
+    },
+    {
+      "code": "SB-5X93-QP95-JDZW-BF5T",
+      "type": "coins",
+      "value": 100,
+      "label": "100?",
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:29:13.267Z"
+    },
+    {
+      "code": "SB-NKCE-MFKV-D8U5-4BVQ",
+      "type": "coins",
+      "value": 50,
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:42:45.086Z"
+    },
+    {
+      "code": "SB-DZ3Q-U87W-P9FB-DFJF",
+      "type": "coins",
+      "value": 50,
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:42:45.086Z"
+    },
+    {
+      "code": "SB-43TJ-FNX4-74B7-VAUU",
+      "type": "coins",
+      "value": 50,
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:43:40.457Z"
+    },
+    {
+      "code": "SB-24ST-QMDB-AFQQ-DGFV",
+      "type": "coins",
+      "value": 50,
+      "days": 0,
+      "used": false,
+      "usedBy": null,
+      "usedAt": null,
+      "createdAt": "2026-08-09T11:43:40.457Z"
+    }
+  ],
+  "admins": [],
+  "config": {
+    "version": "4.0.0"
+  }
+}
