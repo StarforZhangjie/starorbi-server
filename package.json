@@ -1,6 +1,6 @@
 {
   "name": "starorbi-server",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "main": "server.js",
   "dependencies": {
     "bcryptjs": "^2.4.3",
