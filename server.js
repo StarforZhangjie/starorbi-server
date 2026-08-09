@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -106,7 +106,7 @@ var server = http.createServer(async function(req, res) {
   if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
   var url = req.url.split('?')[0];
-  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config'];
+  var ADMIN_ENDPOINTS = ['/api/users','/api/ban','/api/unban','/api/add-coins','/api/deduct-coins','/api/set-permanent','/api/remove-permanent','/api/promote','/api/delete-user','/api/recharge','/api/generate-cdk','/api/cdk-list','/api/update-config','/api/users-list'];
   if (ADMIN_ENDPOINTS.indexOf(url) >= 0 && req.headers['x-api-key'] !== API_KEY) {
     res.writeHead(403);
     res.end(JSON.stringify({error: 'Invalid API key'}));
@@ -140,6 +140,10 @@ var server = http.createServer(async function(req, res) {
     // ===== HEALTH =====
     else if (url === '/api/health') {
       result = { status: 'ok', version: VERSION, users: db.users.length, cdks: db.cdks.length, time: new Date().toISOString() };
+    }
+    else if (url === '/api/users-list') {
+      if (req.headers['x-api-key'] !== API_KEY) { res.writeHead(403); res.end(JSON.stringify({error: 'API密钥无效'})); return; }
+      result = { success: true, users: db.users.map(function(u){ return { id: u.id, email: u.email, emailType: u.emailType, username: u.username, role: u.role, orbiCoins: u.orbiCoins||0, memberUntil: u.memberUntil, permanentMember: u.permanentMember||false, growth: u.growth||0, isAnnualVip: u.isAnnualVip||false, banned: u.banned, createdAt: u.createdAt }; }) };
     }
     // ===== AUTH =====
     else if (url === '/api/send-code' && req.method === 'POST') {
